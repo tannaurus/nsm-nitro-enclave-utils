@@ -2,7 +2,7 @@ use p384::ecdsa::signature::digest::Digest;
 use serde_bytes::ByteBuf;
 use std::collections::BTreeMap;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Pcrs(pub(crate) [String; 7]);
 
 /// Generators
@@ -106,5 +106,21 @@ mod tests {
             .into_iter()
             .all(|s| s.chars().all(|s| s.to_string().as_str() == "0"));
         assert!(all_zeros);
+    }
+
+    #[test]
+    fn seed_is_deterministic() {
+        let seed: [String; 7] = core::array::from_fn(|i| {
+            format!("pcr{i}")
+        });
+        let a = Pcrs::seed(seed.clone()).unwrap();
+        let b = Pcrs::seed(seed).unwrap();
+        assert_eq!(a, b);
+
+        let alt_seed: [String; 7] = core::array::from_fn(|i| {
+            format!("pcr{}", i + 1)
+        });
+        let c = Pcrs::seed(alt_seed).unwrap();
+        assert_ne!(a, c);
     }
 }
