@@ -1,14 +1,23 @@
 use crate::cert::ChainVerifier;
 use aws_nitro_enclaves_nsm_api::api::AttestationDoc;
 use coset::{CborSerializable, CoseSign1};
-use p384::ecdsa::{Signature, VerifyingKey, signature::Verifier};
+use p384::ecdsa::{signature::Verifier, Signature, VerifyingKey};
+use sealed::sealed;
 use webpki::types::CertificateDer;
-use x509_cert::{Certificate, der::Decode};
+use x509_cert::{der::Decode, Certificate};
 
-pub struct Decoder;
+#[sealed]
+pub trait AttestationDocVerifierExt {
+    fn from_cose(
+        cose_attestation_doc: &[u8],
+        root_cert: &[u8],
+        time: u64,
+    ) -> Result<AttestationDoc, &'static str>;
+}
 
-impl Decoder {
-    pub fn decode_with_root_cert(
+#[sealed]
+impl AttestationDocVerifierExt for AttestationDoc {
+    fn from_cose(
         cose_attestation_doc: &[u8],
         root_cert: &[u8],
         time: u64,
@@ -45,13 +54,13 @@ impl Decoder {
                 .as_bytes()
                 .ok_or("Attestation doc missing subject_public_key")?,
         )
-            .map_err(|_| "Failed to parse verifying key")?;
+        .map_err(|_| "Failed to parse verifying key")?;
 
         cose.verify_signature(&[], |signature, msg| {
             let signature = Signature::try_from(signature)?;
             verifying_key.verify(msg, &signature)
         })
-            .map_err(|_| "Verification of attestation doc signature failed")?;
+        .map_err(|_| "Verification of attestation doc signature failed")?;
 
         Ok(attestation_doc)
     }

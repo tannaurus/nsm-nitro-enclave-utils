@@ -1,11 +1,11 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use crate::nsm::Driver;
+use crate::pcrs::Pcrs;
+use crate::signer::AttestationDocSignerExt;
+use crate::Nsm;
 use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, ErrorCode, Request, Response};
 use p384::ecdsa::SigningKey;
 use serde_bytes::ByteBuf;
-use crate::signer::AttestationDocSignerExt;
-use crate::{Nsm};
-use crate::nsm::Driver;
-use crate::pcrs::Pcrs;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) struct Phony {
     pub(crate) signing_key: SigningKey,
@@ -108,7 +108,7 @@ impl PhonyBuilder {
                 end_cert: self.end_cert,
                 ca_bundle: self.ca_bundle.unwrap_or(Vec::new()),
                 pcrs: self.pcrs,
-            })
+            }),
         }
     }
 }

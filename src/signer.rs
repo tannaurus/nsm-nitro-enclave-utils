@@ -13,32 +13,35 @@ pub trait AttestationDocSignerExt {
 #[sealed]
 impl AttestationDocSignerExt for AttestationDoc {
     fn sign(&self, signing_key: SigningKey) -> Result<Vec<u8>, &'static str> {
-            let headers = HeaderBuilder::new().algorithm(Algorithm::ES384).build();
+        let headers = HeaderBuilder::new().algorithm(Algorithm::ES384).build();
 
-            let payload = self.to_binary();
+        let payload = self.to_binary();
 
-            let cose = CoseSign1Builder::new()
-                .payload(payload)
-                .protected(headers)
-                .create_signature(b"", |bytes| {
-                    let signature: Signature = signing_key.sign(bytes);
-                    signature.to_bytes().to_vec()
-                })
-                .build();
+        let cose = CoseSign1Builder::new()
+            .payload(payload)
+            .protected(headers)
+            .create_signature(b"", |bytes| {
+                let signature: Signature = signing_key.sign(bytes);
+                signature.to_bytes().to_vec()
+            })
+            .build();
 
-            cose.to_vec().map_err(|_| "Failed to serialize COSE")
+        cose.to_vec().map_err(|_| "Failed to serialize COSE")
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::decoder::Decoder;
     use crate::pcrs::Pcrs;
+    use crate::signer::AttestationDocSignerExt;
+    use crate::verifier::AttestationDocVerifierExt;
     use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, Digest};
     use p384::ecdsa::SigningKey;
     use std::time::{SystemTime, UNIX_EPOCH};
-    use x509_cert::{Certificate, der::{DecodePem, Encode}};
-    use crate::signer::AttestationDocSignerExt;
+    use x509_cert::{
+        der::{DecodePem, Encode},
+        Certificate,
+    };
 
     #[test]
     fn encode_decode() {
@@ -74,7 +77,7 @@ mod tests {
 
         let doc = doc.sign(signing_key).unwrap();
 
-        Decoder::decode_with_root_cert(
+        AttestationDoc::from_cose(
             &doc,
             &root_cert,
             SystemTime::now()

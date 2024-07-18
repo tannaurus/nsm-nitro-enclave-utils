@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
 use p384::ecdsa::signature::digest::Digest;
 use serde_bytes::ByteBuf;
+use std::collections::BTreeMap;
 
 #[derive(Clone)]
 pub struct Pcrs(pub(crate) [String; 7]);

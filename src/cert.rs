@@ -1,7 +1,9 @@
 use std::time::Duration;
 use webpki::{
-    anchor_from_trusted_cert, CertRevocationList, EndEntityCert, ExpirationPolicy, KeyUsage,
-    RevocationCheckDepth, RevocationOptionsBuilder, UnknownStatusPolicy, types::{CertificateDer, TrustAnchor, UnixTime}
+    anchor_from_trusted_cert,
+    types::{CertificateDer, TrustAnchor, UnixTime},
+    CertRevocationList, EndEntityCert, ExpirationPolicy, KeyUsage, RevocationCheckDepth,
+    RevocationOptionsBuilder, UnknownStatusPolicy,
 };
 
 #[must_use = "ChainVerifier must be verified"]

@@ -1,7 +1,7 @@
+use crate::phony::{Phony, PhonyBuilder};
 use aws_nitro_enclaves_nsm_api::api::{Request, Response};
 use p384::ecdsa::SigningKey;
 use serde_bytes::ByteBuf;
-use crate::phony::{Phony, PhonyBuilder};
 
 /// [`Nsm`]'s inner driver
 pub(crate) enum Driver {
@@ -49,7 +49,6 @@ impl Nsm {
         }
     }
 }
-
 
 /// A builder for [`Nsm`]
 /// Acts as an entry point to "bring your own pki" via [`Nsm::dev_mode`]
