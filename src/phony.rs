@@ -96,6 +96,7 @@ impl PhonyBuilder {
         }
     }
 
+    /// Set attestation document's PCRs
     pub fn pcrs(self, pcrs: Pcrs) -> Self {
         Self { pcrs, ..self }
     }
