@@ -3,11 +3,12 @@
 mod cert;
 mod decoder;
 pub use decoder::*;
-mod encoder;
-pub use encoder::*;
+mod signer;
+pub use signer::*;
 mod pcrs;
 pub use pcrs::*;
 mod phony;
 
 mod nsm;
+
 pub use nsm::*;

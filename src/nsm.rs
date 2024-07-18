@@ -3,15 +3,19 @@ use p384::ecdsa::SigningKey;
 use serde_bytes::ByteBuf;
 use crate::phony::{Phony, PhonyBuilder};
 
-enum Driver {
+/// [`Nsm`]'s inner driver
+pub(crate) enum Driver {
+    /// Used when [`NsmBuilder`] is configured in `dev_mode`
+    /// All requests are processed by [`Phony`]
     Mocked(Phony),
+    /// Used when [`NsmBuilder`] is interacting with an authentic Nitro Secure Module.
     Nitro(i32),
 }
 
 /// [`Nsm`] processes requires to the Nitro Secure Module.
 /// It can be configured to support "bring your own pki" via [`NsmBuilder`]
 pub struct Nsm {
-    inner: Driver,
+    pub(crate) inner: Driver,
 }
 
 impl Drop for Nsm {
@@ -50,12 +54,12 @@ impl Nsm {
 /// A builder for [`Nsm`]
 /// Acts as an entry point to "bring your own pki" via [`Nsm::dev_mode`]
 /// and a driver for authentic Nitro Secure Modules via [`Nsm::init`]
-pub struct NsmBuilder();
+pub struct NsmBuilder;
 
 impl NsmBuilder {
     /// Creates a new [`NsmBuilder`], which acts as an entry point to either configure
     pub fn new() -> Self {
-        NsmBuilder()
+        NsmBuilder
     }
 
     /// Creates a new [`PhonyBuilder`], which supports "bring your own pki"

@@ -1,40 +1,44 @@
 use aws_nitro_enclaves_nsm_api::api::AttestationDoc;
-
 use coset::iana::Algorithm;
 use coset::{CborSerializable, CoseSign1Builder, HeaderBuilder};
 use p384::ecdsa::signature::Signer;
 use p384::ecdsa::{Signature, SigningKey};
+use sealed::sealed;
 
-pub struct Encoder;
+#[sealed]
+pub trait AttestationDocSignerExt {
+    fn sign(&self, signing_key: SigningKey) -> Result<Vec<u8>, &'static str>;
+}
 
-impl Encoder {
-    pub fn encode(doc: &AttestationDoc, signing_key: SigningKey) -> Result<Vec<u8>, &'static str> {
-        let headers = HeaderBuilder::new().algorithm(Algorithm::ES384).build();
+#[sealed]
+impl AttestationDocSignerExt for AttestationDoc {
+    fn sign(&self, signing_key: SigningKey) -> Result<Vec<u8>, &'static str> {
+            let headers = HeaderBuilder::new().algorithm(Algorithm::ES384).build();
 
-        let payload = doc.to_binary();
+            let payload = self.to_binary();
 
-        let cose = CoseSign1Builder::new()
-            .payload(payload)
-            .protected(headers)
-            .create_signature(b"", |bytes| {
-                let signature: Signature = signing_key.sign(bytes);
-                signature.to_bytes().to_vec()
-            })
-            .build();
+            let cose = CoseSign1Builder::new()
+                .payload(payload)
+                .protected(headers)
+                .create_signature(b"", |bytes| {
+                    let signature: Signature = signing_key.sign(bytes);
+                    signature.to_bytes().to_vec()
+                })
+                .build();
 
-        cose.to_vec().map_err(|_| "Failed to serialize COSE")
+            cose.to_vec().map_err(|_| "Failed to serialize COSE")
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::decoder::Decoder;
-    use crate::encoder::Encoder;
     use crate::pcrs::Pcrs;
     use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, Digest};
     use p384::ecdsa::SigningKey;
     use std::time::{SystemTime, UNIX_EPOCH};
     use x509_cert::{Certificate, der::{DecodePem, Encode}};
+    use crate::signer::AttestationDocSignerExt;
 
     #[test]
     fn encode_decode() {
@@ -68,7 +72,7 @@ mod tests {
             nonce: None,
         };
 
-        let doc = Encoder::encode(&doc, signing_key).unwrap();
+        let doc = doc.sign(signing_key).unwrap();
 
         Decoder::decode_with_root_cert(
             &doc,

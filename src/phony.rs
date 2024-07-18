@@ -2,8 +2,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, ErrorCode, Request, Response};
 use p384::ecdsa::SigningKey;
 use serde_bytes::ByteBuf;
-use crate::encoder::Encoder;
-use crate::{Hypervisor, Nsm};
+use crate::signer::AttestationDocSignerExt;
+use crate::{Nsm};
+use crate::nsm::Driver;
 use crate::pcrs::Pcrs;
 
 pub(crate) struct Phony {
@@ -58,7 +59,7 @@ impl Phony {
             public_key,
         };
 
-        if let Ok(document) = Encoder::encode(&doc, self.signing_key.clone()) {
+        if let Ok(document) = doc.sign(self.signing_key.clone()) {
             return Response::Attestation { document };
         }
 
@@ -102,7 +103,7 @@ impl PhonyBuilder {
     /// Create an [`Nsm`] where [`Phony`] processes the requests
     pub fn build(self) -> Nsm {
         Nsm {
-            inner: Hypervisor::Mocked(Phony {
+            inner: Driver::Mocked(Phony {
                 signing_key: self.signing_key,
                 end_cert: self.end_cert,
                 ca_bundle: self.ca_bundle.unwrap_or(Vec::new()),
