@@ -5,12 +5,12 @@ edition = "2021"
 
 [features]
 rand = ["dep:rand"]
+seed = ["dep:sha2"]
 
 [dependencies]
 aws-nitro-enclaves-nsm-api = "0.4.0"
 serde_cbor = "0.11"
 serde_bytes = "0.11"
-sha2 = "0.10"
 hex = "0.4"
 coset = "0.3"
 serde = { version = "1", features = ["derive"] }
@@ -19,4 +19,5 @@ rustls-webpki = { version = "0.102", features = ["ring"] }
 x509-cert = { version =  "0.2", features = ["builder"] }
 p384 = { version = "0.13" }
 sealed = "0.5"
+sha2 = { version = "0.10", optional = true }
 rand = { version = "0.8", optional = true }

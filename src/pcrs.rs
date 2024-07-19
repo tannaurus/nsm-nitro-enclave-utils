@@ -1,4 +1,3 @@
-use p384::ecdsa::signature::digest::Digest;
 use serde_bytes::ByteBuf;
 use std::collections::BTreeMap;
 use std::ops::Deref;
@@ -65,8 +64,10 @@ impl Pcrs {
         }))
     }
 
+    #[cfg(feature = "seed")]
     /// All PCRs will be seeded from the provided strings. Each string gets hashed with SHA386.
     pub fn seed(values: [String; PCR_COUNT]) -> Result<Self, &'static str> {
+        use p384::ecdsa::signature::digest::Digest;
         let values = values
             .into_iter()
             .map(|seed| {
@@ -144,18 +145,6 @@ mod tests {
     fn pcrs_zeros_is_zeros() {
         let pcrs = Pcrs::zeros();
         is_all_zeros(pcrs);
-    }
-
-    #[test]
-    fn seed_is_deterministic() {
-        let seed: [String; PCR_COUNT] = core::array::from_fn(|i| format!("pcr{i}"));
-        let a = Pcrs::seed(seed.clone()).unwrap();
-        let b = Pcrs::seed(seed).unwrap();
-        assert_eq!(a, b);
-
-        let alt_seed: [String; PCR_COUNT] = core::array::from_fn(|i| format!("pcr{}", i + 1));
-        let c = Pcrs::seed(alt_seed).unwrap();
-        assert_ne!(a, c);
     }
 
     #[test]
@@ -237,5 +226,18 @@ mod tests {
         let a = Pcrs::rand();
         let b = Pcrs::rand();
         assert_ne!(a, b);
+    }
+
+    #[cfg(feature = "seed")]
+    #[test]
+    fn seed_is_deterministic() {
+        let seed: [String; PCR_COUNT] = core::array::from_fn(|i| format!("pcr{i}"));
+        let a = Pcrs::seed(seed.clone()).unwrap();
+        let b = Pcrs::seed(seed).unwrap();
+        assert_eq!(a, b);
+
+        let alt_seed: [String; PCR_COUNT] = core::array::from_fn(|i| format!("pcr{}", i + 1));
+        let c = Pcrs::seed(alt_seed).unwrap();
+        assert_ne!(a, c);
     }
 }
