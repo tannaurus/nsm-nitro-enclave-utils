@@ -14,8 +14,14 @@ mod nsm;
 pub use nsm::*;
 
 #[cfg(test)]
+/// This test suite is expected to reasonable cover all features that WebAssembly support.
+/// wasm-pack test --node --no-default-features --features seed,rand
 mod wasm_tests {
+    use crate::Pcrs;
     use wasm_bindgen_test::*;
+
+    /// "time" is not implement for wasm targets
+    const SECONDS_SINCE_EPOCH: u64 = 1721403617;
 
     #[wasm_bindgen_test]
     fn verifier() {
@@ -24,7 +30,6 @@ mod wasm_tests {
         use crate::verifier::AttestationDocVerifierExt;
         use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, Digest};
         use p384::ecdsa::SigningKey;
-        use std::time::{SystemTime, UNIX_EPOCH};
         use x509_cert::{
             der::{DecodePem, Encode},
             Certificate,
@@ -48,10 +53,7 @@ mod wasm_tests {
         let doc = AttestationDoc {
             module_id: "".to_string(),
             digest: Digest::SHA384,
-            timestamp: SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs(),
+            timestamp: SECONDS_SINCE_EPOCH,
             pcrs: Pcrs::default().into(),
             certificate: end_cert.to_der().unwrap().into(),
             cabundle: vec![int_cert.to_der().unwrap().into()],
@@ -62,14 +64,30 @@ mod wasm_tests {
 
         let doc = doc.sign(signing_key).unwrap();
 
-        AttestationDoc::from_cose(
-            &doc,
-            &root_cert,
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs(),
-        )
-        .unwrap();
+        AttestationDoc::from_cose(&doc, &root_cert, SECONDS_SINCE_EPOCH).unwrap();
+    }
+
+    #[cfg(feature = "seed")]
+    #[wasm_bindgen_test]
+    fn seed_is_deterministic() {
+        use crate::Pcrs;
+
+        let seed: [String; crate::pcrs::PCR_COUNT] = core::array::from_fn(|i| format!("pcr{i}"));
+        let a = Pcrs::seed(seed.clone()).unwrap();
+        let b = Pcrs::seed(seed).unwrap();
+        assert_eq!(a, b);
+
+        let alt_seed: [String; crate::pcrs::PCR_COUNT] =
+            core::array::from_fn(|i| format!("pcr{}", i + 1));
+        let c = Pcrs::seed(alt_seed).unwrap();
+        assert_ne!(a, c);
+    }
+
+    #[cfg(feature = "rand")]
+    #[wasm_bindgen_test]
+    fn rand() {
+        let a = Pcrs::rand();
+        let b = Pcrs::rand();
+        assert_ne!(a, b);
     }
 }

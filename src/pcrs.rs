@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use std::ops::Deref;
 
 /// PCRs from to 0 to 8
-const PCR_COUNT: usize = 8;
+pub(crate) const PCR_COUNT: usize = 8;
 /// Sha384 hashes have a length of 96
 const PCR_LENGTH: usize = 96;
 
