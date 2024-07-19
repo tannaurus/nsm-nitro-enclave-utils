@@ -3,6 +3,9 @@ name = "nsm-nitro-enclave-utils"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+rand = ["dep:rand"]
+
 [dependencies]
 aws-nitro-enclaves-nsm-api = "0.4.0"
 serde_cbor = "0.11"
@@ -16,3 +19,4 @@ rustls-webpki = { version = "0.102", features = ["ring"] }
 x509-cert = { version =  "0.2", features = ["builder"] }
 p384 = { version = "0.13" }
 sealed = "0.5"
+rand = { version = "0.8", optional = true }

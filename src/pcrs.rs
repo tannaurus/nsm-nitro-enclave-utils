@@ -52,15 +52,16 @@ impl Pcrs {
     /// Example: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
     pub fn zeros() -> Self {
         Self(core::array::from_fn(|_| {
-            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".to_owned().try_into().expect("Zeros must be valid Pcr")
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".to_owned().try_into().expect("zeros must be valid Pcr")
         }))
     }
 
+    #[cfg(feature = "rand")]
     /// All PCRs will be randomly generated to mimic SHA386 hashes
-    // Todo: generate mimic values
     pub fn rand() -> Self {
+        use rand::{distributions::Alphanumeric, Rng};
         Self(core::array::from_fn(|_| {
-            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".to_owned().try_into().expect("Zeros must be valid Pcr")
+            rand::thread_rng().sample_iter(&Alphanumeric).take(PCR_LENGTH).map(char::from).collect::<String>().try_into().expect("rand must be valid Pcr")
         }))
     }
 
@@ -228,5 +229,13 @@ mod tests {
         }
 
         assert!(map.get(&(PCR_COUNT + 1)).is_none());
+    }
+
+    #[cfg(feature = "rand")]
+    #[test]
+    fn rand() {
+        let a = Pcrs::rand();
+        let b = Pcrs::rand();
+        assert_ne!(a, b);
     }
 }
