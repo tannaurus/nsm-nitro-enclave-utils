@@ -7,19 +7,9 @@ const PCR_COUNT: usize = 8;
 /// Sha384 hashes have a length of 96
 const PCR_LENGTH: usize = 96;
 
-/// A complete list of [`Pcr`]s
-#[derive(Clone, PartialEq, Debug)]
-pub struct Pcrs(pub(crate) [Pcr; PCR_COUNT]);
-
-impl Default for Pcrs {
-    fn default() -> Self {
-        Pcrs::zeros()
-    }
-}
-
 /// Platform Configuration Register
 #[derive(Clone, PartialEq, Debug)]
-pub struct Pcr(String);
+pub(crate) struct Pcr(String);
 
 impl Deref for Pcr {
     type Target = String;
@@ -45,6 +35,43 @@ impl TryFrom<String> for Pcr {
     }
 }
 
+/// A complete list of [`Pcr`]s
+#[derive(Clone, PartialEq, Debug)]
+pub struct Pcrs(pub(crate) [Pcr; PCR_COUNT]);
+
+impl Default for Pcrs {
+    fn default() -> Self {
+        Pcrs::zeros()
+    }
+}
+
+/// Useful if you have pre-generated PCRs you wish to mock.
+/// If you don't already have PCRs, you should probably use [`Pcrs`]'s methods to generate what you need.
+impl TryFrom<[String; PCR_COUNT]> for Pcrs {
+    type Error = &'static str;
+    fn try_from(pcrs: [String; PCR_COUNT]) -> Result<Self, &'static str> {
+        let pcrs = pcrs
+            .into_iter()
+            .map(|pcr| Pcr::try_from(pcr))
+            .collect::<Result<Vec<Pcr>, Self::Error>>()?;
+        Ok(Self(
+            pcrs.try_into().expect("pcrs must have length of PCR_COUNT"),
+        ))
+    }
+}
+
+/// [`aws_nitro_enclaves_nsm_api::api::AttestationDoc`] stores PCRs as a BTreeMap.
+impl Into<BTreeMap<usize, ByteBuf>> for Pcrs {
+    fn into(self) -> BTreeMap<usize, ByteBuf> {
+        let mut map = BTreeMap::new();
+        for (index, value) in self.0.into_iter().enumerate() {
+            map.insert(index, value.as_bytes().to_vec().into());
+        }
+
+        map
+    }
+}
+
 /// Generators
 impl Pcrs {
     /// All PCRs will be zeros
@@ -60,7 +87,13 @@ impl Pcrs {
     pub fn rand() -> Self {
         use rand::{distributions::Alphanumeric, Rng};
         Self(core::array::from_fn(|_| {
-            rand::thread_rng().sample_iter(&Alphanumeric).take(PCR_LENGTH).map(char::from).collect::<String>().try_into().expect("rand must be valid Pcr")
+            rand::thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(PCR_LENGTH)
+                .map(char::from)
+                .collect::<String>()
+                .try_into()
+                .expect("rand must be valid Pcr")
         }))
     }
 
@@ -86,40 +119,22 @@ impl Pcrs {
 
 /// Getters and setters
 impl Pcrs {
-    pub fn checked_get(&self, index: usize) -> Result<&Pcr, &'static str> {
+    pub fn checked_get(&self, index: usize) -> Result<&str, &'static str> {
         if index > PCR_COUNT {
             return Err("PCR index out of range");
         }
         Ok(&self.0[index])
     }
 
-    pub fn checked_set(&mut self, index: usize, value: Pcr) -> Result<(), &'static str> {
+    pub fn checked_set(&mut self, index: usize, pcr: String) -> Result<(), &'static str> {
         if index > PCR_COUNT {
             return Err("PCR index out of range");
         }
 
-        self.0[index] = value;
+        let pcr = Pcr::try_from(pcr)?;
+
+        self.0[index] = pcr;
         Ok(())
-    }
-}
-
-/// Useful if you have pre-generated PCRs you wish to mock.
-/// If you don't already have PCRs, you should probably use [`Pcrs`]'s methods to generate what you need.
-impl From<[Pcr; PCR_COUNT]> for Pcrs {
-    fn from(pcrs: [Pcr; PCR_COUNT]) -> Self {
-        Self(pcrs)
-    }
-}
-
-/// [`aws_nitro_enclaves_nsm_api::api::AttestationDoc`] stores PCRs as a BTreeMap.
-impl Into<BTreeMap<usize, ByteBuf>> for Pcrs {
-    fn into(self) -> BTreeMap<usize, ByteBuf> {
-        let mut map = BTreeMap::new();
-        for (index, value) in self.0.into_iter().enumerate() {
-            map.insert(index, value.as_bytes().to_vec().into());
-        }
-
-        map
     }
 }
 
@@ -187,17 +202,17 @@ mod tests {
     #[test]
     fn checked_set() {
         let mut pcrs = Pcrs::zeros();
-        let updated = Pcr::try_from("111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111".to_string()).unwrap();
+        let updated = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111".to_string();
         for i in 0..PCR_COUNT {
             pcrs.checked_set(i, updated.clone()).unwrap();
-            assert_eq!(pcrs.checked_get(i).unwrap(), &updated);
+            assert_eq!(pcrs.checked_get(i).unwrap(), updated);
         }
     }
 
     #[test]
     fn checked_set_bounds() {
         let mut pcrs = Pcrs::zeros();
-        let updated = Pcr::try_from("111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111".to_string()).unwrap();
+        let updated = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111".to_string();
         for i in 0..PCR_COUNT {
             pcrs.checked_set(i, updated.clone())
                 .expect("Failed to set PCR in range");

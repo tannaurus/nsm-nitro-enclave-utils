@@ -17,3 +17,8 @@ This crate comes with a script to make generating your own pki easier. These scr
 
 #### AWS Root Certificate
 When verifying an attestation document coming from a Nitro Enclave, you'll need to use AWS's root certificate; which can be downloaded from their documentation: https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html#validation-process
+
+
+## Wasm Compatability
+
+`nsm-nitro-enclave-utils` provides WebAssembly support by disabling the `nitro` feature flag. When `nitro` is disabled, you can still sign your own attestation documents, and verify any attestation document (including authentic ones!) but you cannot generate authenticate documents due to a lack of wasm support in `aws-nitro-enclaves-nsm-api`.

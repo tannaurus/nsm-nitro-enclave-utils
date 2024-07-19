@@ -7,14 +7,17 @@ pub(crate) trait Driver {
     fn process_request(&self, request: Request) -> Response;
 }
 
+#[cfg(feature = "nitro")]
 struct Nitro(i32);
 
+#[cfg(feature = "nitro")]
 impl Driver for Nitro {
     fn process_request(&self, request: Request) -> Response {
         aws_nitro_enclaves_nsm_api::driver::nsm_process_request(self.0, request)
     }
 }
 
+#[cfg(feature = "nitro")]
 impl Drop for Nitro {
     fn drop(&mut self) {
         aws_nitro_enclaves_nsm_api::driver::nsm_exit(self.0)
@@ -28,10 +31,11 @@ pub struct Nsm {
 }
 
 impl Nsm {
+    #[cfg(feature = "nitro")]
     /// Create a new [`Nsm`] which will attempt to interact with the Nitro Secure Module
     pub fn init() -> Self {
         Self {
-            driver: Box::new(Nitro(aws_nitro_enclaves_nsm_api::driver::nsm_init()))
+            driver: Box::new(Nitro(aws_nitro_enclaves_nsm_api::driver::nsm_init())),
         }
     }
 
@@ -62,6 +66,7 @@ impl NsmBuilder {
         PhonyBuilder::new(signing_key, end_cert)
     }
 
+    #[cfg(feature = "nitro")]
     /// Creates a driver for authentic Nitro Secure Modules
     pub fn init(self) -> Nsm {
         Nsm::init()

@@ -4,11 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
+default = ["nitro"]
 rand = ["dep:rand"]
 seed = ["dep:sha2"]
+nitro = ["aws-nitro-enclaves-nsm-api/nix"]
+
+[lib]
+crate-type = ["cdylib"]
 
 [dependencies]
-aws-nitro-enclaves-nsm-api = "0.4.0"
 serde_cbor = "0.11"
 serde_bytes = "0.11"
 hex = "0.4"
@@ -21,3 +25,10 @@ p384 = { version = "0.13" }
 sealed = "0.5"
 sha2 = { version = "0.10", optional = true }
 rand = { version = "0.8", optional = true }
+aws-nitro-enclaves-nsm-api = { version = "0.4.0", default-features = false }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
