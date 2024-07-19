@@ -1,36 +1,37 @@
-use crate::phony::{Phony, PhonyBuilder};
+use crate::phony::PhonyBuilder;
 use aws_nitro_enclaves_nsm_api::api::{Request, Response};
 use p384::ecdsa::SigningKey;
 use serde_bytes::ByteBuf;
 
-/// [`Nsm`]'s inner driver
-pub(crate) enum Driver {
-    /// Used when [`NsmBuilder`] is configured in `dev_mode`
-    /// All requests are processed by [`Phony`]
-    Mocked(Phony),
-    /// Used when [`NsmBuilder`] is interacting with an authentic Nitro Secure Module.
-    Nitro(i32),
+pub(crate) trait Driver {
+    fn process_request(&self, request: Request) -> Response;
+}
+
+struct Nitro(i32);
+
+impl Driver for Nitro {
+    fn process_request(&self, request: Request) -> Response {
+        aws_nitro_enclaves_nsm_api::driver::nsm_process_request(self.0, request)
+    }
+}
+
+impl Drop for Nitro {
+    fn drop(&mut self) {
+        aws_nitro_enclaves_nsm_api::driver::nsm_exit(self.0)
+    }
 }
 
 /// [`Nsm`] processes requires to the Nitro Secure Module.
 /// It can be configured to support "bring your own pki" via [`NsmBuilder`]
 pub struct Nsm {
-    pub(crate) inner: Driver,
-}
-
-impl Drop for Nsm {
-    fn drop(&mut self) {
-        if let Driver::Nitro(fd) = self.inner {
-            aws_nitro_enclaves_nsm_api::driver::nsm_exit(fd)
-        }
-    }
+    pub(crate) driver: Box<dyn Driver>,
 }
 
 impl Nsm {
     /// Create a new [`Nsm`] which will attempt to interact with the Nitro Secure Module
     pub fn init() -> Self {
         Self {
-            inner: Driver::Nitro(aws_nitro_enclaves_nsm_api::driver::nsm_init()),
+            driver: Box::new(Nitro(aws_nitro_enclaves_nsm_api::driver::nsm_init()))
         }
     }
 
@@ -41,12 +42,7 @@ impl Nsm {
 
     /// Process an NSM request
     pub fn process_request(&self, request: Request) -> Response {
-        match &self.inner {
-            Driver::Nitro(fd) => {
-                aws_nitro_enclaves_nsm_api::driver::nsm_process_request(*fd, request)
-            }
-            Driver::Mocked(phony) => phony.process_request(request),
-        }
+        self.driver.process_request(request)
     }
 }
 

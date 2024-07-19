@@ -14,8 +14,8 @@ pub(crate) struct Phony {
     pub(crate) pcrs: Pcrs,
 }
 
-impl Phony {
-    pub(crate) fn process_request(&self, request: Request) -> Response {
+impl Driver for Phony {
+    fn process_request(&self, request: Request) -> Response {
         match request {
             Request::DescribePCR { index } => self.describe_pcr(index),
             Request::Attestation {
@@ -27,9 +27,11 @@ impl Phony {
             _ => Response::Error(ErrorCode::InternalError),
         }
     }
+}
 
-    pub(crate) fn describe_pcr(&self, index: u16) -> Response {
-        match self.pcrs.checked_get(index) {
+impl Phony {
+    fn describe_pcr(&self, index: u16) -> Response {
+        match self.pcrs.checked_get(index.into()) {
             Ok(pcr) => Response::DescribePCR {
                 lock: true,
                 data: pcr.to_string().as_bytes().to_vec(),
@@ -38,7 +40,7 @@ impl Phony {
         }
     }
 
-    pub(crate) fn attestation(
+    fn attestation(
         &self,
         user_data: Option<ByteBuf>,
         nonce: Option<ByteBuf>,
@@ -104,7 +106,7 @@ impl PhonyBuilder {
     /// Create an [`Nsm`] where [`Phony`] processes the requests
     pub fn build(self) -> Nsm {
         Nsm {
-            inner: Driver::Mocked(Phony {
+            driver: Box::new(Phony {
                 signing_key: self.signing_key,
                 end_cert: self.end_cert,
                 ca_bundle: self.ca_bundle.unwrap_or(Vec::new()),
