@@ -5,7 +5,7 @@ With the root of trust swapped, your enclave services can dynamically generate a
 
 The api of `nsm-nitro-enclave-utils` is intentionally designed to mimic `aws-nitro-enclaves-nsm-api` in an effort to adopting it a painless process.
 
-⚠️ This crate is a work in progress
+⚠️ This crate is functional but it's API is changing rapidly until futher notice.
 
 ## Setup
 If you're already using `aws-nitro-enclaves-nsm-api`, you'll need to swap out `aws_nitro_enclaves_nsm_api::driver::nsm_init` with `NsmBuilder`, which allows you to swap our your pki and specify the PCRs of your attestation document.
