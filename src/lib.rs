@@ -17,7 +17,6 @@ pub use nsm::*;
 /// This test suite is expected to reasonable cover all features that WebAssembly support.
 /// wasm-pack test --node --no-default-features --features seed,rand
 mod wasm_tests {
-    use crate::Pcrs;
     use wasm_bindgen_test::*;
 
     /// "time" is not implement for wasm targets
@@ -86,6 +85,8 @@ mod wasm_tests {
     #[cfg(feature = "rand")]
     #[wasm_bindgen_test]
     fn rand() {
+        use crate::Pcrs;
+
         let a = Pcrs::rand();
         let b = Pcrs::rand();
         assert_ne!(a, b);

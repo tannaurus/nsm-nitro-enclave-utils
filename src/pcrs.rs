@@ -4,34 +4,36 @@ use std::ops::Deref;
 
 /// PCRs from to 0 to 8
 pub(crate) const PCR_COUNT: usize = 8;
-/// Sha384 hashes have a length of 96
-const PCR_LENGTH: usize = 96;
+/// Sha384 hashes contain 48 bytes
+const PCR_LENGTH: usize = 48;
 
 /// Platform Configuration Register
 #[derive(Clone, PartialEq, Debug)]
-pub(crate) struct Pcr(String);
+pub(crate) struct Pcr(ByteBuf);
 
 impl Deref for Pcr {
-    type Target = String;
+    type Target = ByteBuf;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl TryFrom<String> for Pcr {
+impl Into<ByteBuf> for Pcr {
+    fn into(self) -> ByteBuf {
+        self.0
+    }
+}
+
+impl TryFrom<Vec<u8>> for Pcr {
     type Error = &'static str;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
         if value.len() != PCR_LENGTH {
-            return Err("PCR must be 96 characters.");
+            return Err("PCR must be contain 48 bytes.");
         }
 
-        if !value.chars().all(|char| char.is_alphanumeric()) {
-            return Err("PCR must be alphanumeric");
-        }
-
-        Ok(Self(value))
+        Ok(Self(ByteBuf::from(value)))
     }
 }
 
@@ -47,9 +49,9 @@ impl Default for Pcrs {
 
 /// Useful if you have pre-generated PCRs you wish to mock.
 /// If you don't already have PCRs, you should probably use [`Pcrs`]'s methods to generate what you need.
-impl TryFrom<[String; PCR_COUNT]> for Pcrs {
+impl TryFrom<[Vec<u8>; PCR_COUNT]> for Pcrs {
     type Error = &'static str;
-    fn try_from(pcrs: [String; PCR_COUNT]) -> Result<Self, &'static str> {
+    fn try_from(pcrs: [Vec<u8>; PCR_COUNT]) -> Result<Self, &'static str> {
         let pcrs = pcrs
             .into_iter()
             .map(|pcr| Pcr::try_from(pcr))
@@ -65,7 +67,7 @@ impl Into<BTreeMap<usize, ByteBuf>> for Pcrs {
     fn into(self) -> BTreeMap<usize, ByteBuf> {
         let mut map = BTreeMap::new();
         for (index, value) in self.0.into_iter().enumerate() {
-            map.insert(index, value.as_bytes().to_vec().into());
+            map.insert(index, value.into());
         }
 
         map
@@ -78,7 +80,9 @@ impl Pcrs {
     /// Example: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
     pub fn zeros() -> Self {
         Self(core::array::from_fn(|_| {
-            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".to_owned().try_into().expect("zeros must be valid Pcr")
+            vec![0; PCR_LENGTH]
+                .try_into()
+                .expect("zeros must produce valid Pcr")
         }))
     }
 
@@ -87,13 +91,11 @@ impl Pcrs {
     pub fn rand() -> Self {
         use rand::{distributions::Alphanumeric, Rng};
         Self(core::array::from_fn(|_| {
-            rand::thread_rng()
+            let bytes = rand::thread_rng()
                 .sample_iter(&Alphanumeric)
                 .take(PCR_LENGTH)
-                .map(char::from)
-                .collect::<String>()
-                .try_into()
-                .expect("rand must be valid Pcr")
+                .collect::<Vec<u8>>();
+            Pcr::try_from(bytes).expect("rand must produce valid Pcr")
         }))
     }
 
@@ -106,8 +108,7 @@ impl Pcrs {
             .map(|seed| {
                 let mut hasher = sha2::Sha384::new();
                 hasher.update(seed.as_bytes());
-                let result = hasher.finalize();
-                let result = hex::encode(result);
+                let result = hasher.finalize().to_vec().into();
                 Pcr(result)
             })
             .collect::<Vec<Pcr>>();
@@ -119,14 +120,14 @@ impl Pcrs {
 
 /// Getters and setters
 impl Pcrs {
-    pub fn checked_get(&self, index: usize) -> Result<&str, &'static str> {
+    pub fn checked_get(&self, index: usize) -> Result<&[u8], &'static str> {
         if index > PCR_COUNT {
             return Err("PCR index out of range");
         }
-        Ok(&self.0[index])
+        Ok(&self.0[index].deref())
     }
 
-    pub fn checked_set(&mut self, index: usize, pcr: String) -> Result<(), &'static str> {
+    pub fn checked_set(&mut self, index: usize, pcr: Vec<u8>) -> Result<(), &'static str> {
         if index > PCR_COUNT {
             return Err("PCR index out of range");
         }
@@ -146,7 +147,7 @@ mod tests {
         let all_zeros = pcrs
             .0
             .into_iter()
-            .all(|s| s.chars().all(|s| s.to_string().as_str() == "0"));
+            .all(|pcr| pcr.to_vec().into_iter().all(|b| b == 0));
         assert!(all_zeros);
     }
 
@@ -165,25 +166,18 @@ mod tests {
     #[test]
     fn pcr_string_must_be_96_chars() {
         assert_eq!(
-            Pcr::try_from("short".to_string()).unwrap_err(),
-            "PCR must be 96 characters."
+            Pcr::try_from(vec![0; PCR_LENGTH - 1]).unwrap_err(),
+            "PCR must be contain 48 bytes."
         );
 
-        let long_enough = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".to_string();
-        assert!(Pcr::try_from(long_enough.clone()).is_ok());
-
-        let too_long = format!("{}{}", long_enough, "0");
+        let too_long = vec![0; PCR_LENGTH + 1];
         assert_eq!(
             Pcr::try_from(too_long).unwrap_err(),
-            "PCR must be 96 characters."
+            "PCR must be contain 48 bytes."
         );
-    }
 
-    #[test]
-    fn pcr_string_must_be_alphanumeric() {
-        let problem = ".";
-        let result = Pcr::try_from(format!("{}{}", "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", problem)).unwrap_err();
-        assert_eq!(result, "PCR must be alphanumeric");
+        let just_right = vec![0; PCR_LENGTH];
+        assert!(Pcr::try_from(just_right).is_ok());
     }
 
     #[test]
@@ -202,7 +196,7 @@ mod tests {
     #[test]
     fn checked_set() {
         let mut pcrs = Pcrs::zeros();
-        let updated = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111".to_string();
+        let updated = vec![1; PCR_LENGTH];
         for i in 0..PCR_COUNT {
             pcrs.checked_set(i, updated.clone()).unwrap();
             assert_eq!(pcrs.checked_get(i).unwrap(), updated);
@@ -212,7 +206,7 @@ mod tests {
     #[test]
     fn checked_set_bounds() {
         let mut pcrs = Pcrs::zeros();
-        let updated = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111".to_string();
+        let updated = vec![1; PCR_LENGTH];
         for i in 0..PCR_COUNT {
             pcrs.checked_set(i, updated.clone())
                 .expect("Failed to set PCR in range");

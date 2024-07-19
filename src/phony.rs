@@ -34,7 +34,7 @@ impl Phony {
         match self.pcrs.checked_get(index.into()) {
             Ok(pcr) => Response::DescribePCR {
                 lock: true,
-                data: pcr.to_string().as_bytes().to_vec(),
+                data: pcr.to_vec(),
             },
             Err(_) => Response::Error(ErrorCode::InvalidIndex),
         }
