@@ -33,7 +33,6 @@ When verifying an attestation document coming from a Nitro Enclave, you'll need 
 
 Coming soon 👷
 
-
 ## Wasm Compatability
 
 `nsm-nitro-enclave-utils` provides WebAssembly support by disabling the `nitro` feature flag. When `nitro` is disabled, you can still sign your own attestation documents, and verify any attestation document (including authentic ones!), but you cannot generate authentic documents due to a lack of wasm support in `aws-nitro-enclaves-nsm-api`.
@@ -48,6 +47,6 @@ There is a `wasm-pack` test harness in place to ensure features remain wasm comp
 |:-----------------------|:------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | Verifying              |      ✅       |                                                             Verify self signed, and AWS signed, attestation documents                                                              |
 | Signing                |      ✅       |                                                                Sign attestation documents with "Bring your own PKI"                                                                |
-| Authentic NSM requests |      ❌       | Due to limitations with `aws-nitro-enclaves-nsm-api`, requests to an authentic Nitro Secure Module don't have WebAssembly support. Disabling the `nitro` feature flag is required. |
 | Seeded PCRs            |      ✅       |                                 Use any collection of strings to deterministically seed your PCRs with `Pcrs::seed`. Feature flag `seed` required.                                 |
 | Random PCRs            |      ✅       |                     Don't care about the value of your PCRs, but don't want them to be all zeros? `Pcrs::rand` has you covered. Feature flag `rand` required.                      |
+| Authentic NSM requests |      ❌       | Due to limitations with `aws-nitro-enclaves-nsm-api`, requests to an authentic Nitro Secure Module don't have WebAssembly support. Disabling the `nitro` feature flag is required. |
