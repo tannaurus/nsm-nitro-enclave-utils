@@ -34,7 +34,7 @@ If you're already using `aws-nitro-enclaves-nsm-api`, you'll need to swap out `a
 ### Root of trust
 
 #### Creating your own
-This crate comes with a script to make generating your own pki easier. These scripts are used to generate the scripts in `data/certs`, which **shouldn't** be used as your root of trust, but you can generate your own with them! You can use`data/cert_chain.sh` to get a root, intermediate, and end cert.
+This crate comes with a script to make generating your own pki easier. You can use `scripts/cert_chain.sh` to get a root, intermediate, and leaf certificate.
 
 #### AWS Root Certificate
 When verifying an attestation document coming from a Nitro Enclave, you'll need to use AWS's root certificate; which can be downloaded from their documentation: https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html#validation-process
