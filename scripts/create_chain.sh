@@ -1,13 +1,10 @@
 #!/bin/bash
 
 CERT_DIRECTORY=$1;
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-mkdir -p "$CERT_DIRECTORY"/root
-mkdir -p "$CERT_DIRECTORY"/int
-mkdir -p "$CERT_DIRECTORY"/end
-
-./create_root_cert.sh "$CERT_DIRECTORY"/root
-./create_int_cert.sh "$CERT_DIRECTORY"/int "$CERT_DIRECTORY"/root
-./create_end_cert.sh "$CERT_DIRECTORY"/end "$CERT_DIRECTORY"/int
+"$SCRIPT_DIR"/create_root_cert.sh "$CERT_DIRECTORY"/root
+"$SCRIPT_DIR"/create_int_cert.sh "$CERT_DIRECTORY"/int "$CERT_DIRECTORY"/root
+"$SCRIPT_DIR"/create_end_cert.sh "$CERT_DIRECTORY"/end "$CERT_DIRECTORY"/int
 
 

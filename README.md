@@ -59,4 +59,4 @@ Coming soon 👷
 
 ### Test coverage
 
-There is a `wasm-pack` test harness in place to ensure features remain wasm compatible. This can be run with the following command: `wasm-pack test --node --no-default-features --features seed,rand`
+There is a `wasm-pack` test harness in place to ensure features remain wasm compatible. This can be run with the following command: `wasm-pack test --node --no-default-features --features seed,rand`. The test data is intentionally not committed but can be regenerated with `scripts/create_wasm_test_data.sh` 
