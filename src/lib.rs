@@ -13,6 +13,10 @@ pub use pcrs::*;
 mod nsm;
 pub use nsm::*;
 
+pub(crate) use p384::ecdsa::SigningKey;
+pub use p384::SecretKey;
+pub use webpki::EndEntityCert;
+
 #[cfg(test)]
 /// This test suite is expected to reasonable cover all features that WebAssembly support.
 /// wasm-pack test --node --no-default-features --features seed,rand

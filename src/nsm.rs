@@ -1,6 +1,6 @@
 use crate::phony::PhonyBuilder;
 use aws_nitro_enclaves_nsm_api::api::{Request, Response};
-use p384::ecdsa::SigningKey;
+use p384::SecretKey;
 use serde_bytes::ByteBuf;
 
 pub(crate) trait Driver {
@@ -62,7 +62,7 @@ impl NsmBuilder {
     }
 
     /// Creates a new [`PhonyBuilder`], which supports "bring your own pki"
-    pub fn dev_mode(self, signing_key: SigningKey, end_cert: ByteBuf) -> PhonyBuilder {
+    pub fn dev_mode(self, signing_key: SecretKey, end_cert: ByteBuf) -> PhonyBuilder {
         PhonyBuilder::new(signing_key, end_cert)
     }
 

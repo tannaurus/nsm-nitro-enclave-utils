@@ -1,15 +1,17 @@
 use crate::nsm::Driver;
 use crate::pcrs::Pcrs;
 use crate::signer::AttestationDocSignerExt;
+use crate::EndEntityCert;
 use crate::Nsm;
+use crate::SigningKey;
 use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, ErrorCode, Request, Response};
-use p384::ecdsa::SigningKey;
+use p384::SecretKey;
 use serde_bytes::ByteBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) struct Phony {
     pub(crate) signing_key: SigningKey,
-    pub(crate) end_cert: ByteBuf,
+    pub(crate) end_cert: EndEntityCert<'static>,
     pub(crate) ca_bundle: Vec<ByteBuf>,
     pub(crate) pcrs: Pcrs,
 }
@@ -53,7 +55,7 @@ impl Phony {
                 .expect("Land before time 🦕")
                 .as_secs(),
             pcrs: self.pcrs.clone().into(),
-            certificate: self.end_cert.clone(),
+            certificate: self.end_cert.der().to_vec().into(),
             cabundle: self.ca_bundle.clone(),
             user_data,
             nonce,
@@ -71,7 +73,7 @@ impl Phony {
 /// A builder for [`Phony`]
 pub struct PhonyBuilder {
     signing_key: SigningKey,
-    end_cert: ByteBuf,
+    end_cert: EndEntityCert<'static>,
     ca_bundle: Option<Vec<ByteBuf>>,
     pcrs: Pcrs,
 }
@@ -79,9 +81,9 @@ pub struct PhonyBuilder {
 impl PhonyBuilder {
     /// `signing_key`: used to sign the attestation document
     /// `end_cert` a der encoded x509 certificate. Should contain `signing_key`'s public key.
-    pub fn new(signing_key: SigningKey, end_cert: ByteBuf) -> Self {
+    pub fn new(signing_key: SecretKey, end_cert: EndEntityCert<'static>) -> Self {
         Self {
-            signing_key,
+            signing_key: signing_key.into(),
             end_cert,
             ca_bundle: None,
             pcrs: Pcrs::default(),
