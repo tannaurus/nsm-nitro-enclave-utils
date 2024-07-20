@@ -32,11 +32,11 @@ impl AttestationDocSignerExt for AttestationDoc {
 
 #[cfg(test)]
 mod tests {
-    use std::time::{SystemTime, UNIX_EPOCH};
     use crate::pcrs::Pcrs;
     use crate::sign::AttestationDocSignerExt;
     use crate::verify::AttestationDocVerifierExt;
     use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, Digest};
+    use std::time::{SystemTime, UNIX_EPOCH};
     use x509_cert::builder::Profile;
     use x509_cert::der::Encode;
 
@@ -55,7 +55,7 @@ mod tests {
             },
             root_key,
             int_public_key,
-            now
+            now,
         );
 
         let (end_key, end_public_key) = crate::test_utils::generate_key();
@@ -67,7 +67,7 @@ mod tests {
             },
             int_key,
             end_public_key,
-            now
+            now,
         );
 
         let doc = AttestationDoc {

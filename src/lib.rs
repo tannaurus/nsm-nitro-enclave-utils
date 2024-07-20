@@ -34,19 +34,25 @@ mod wasm_tests {
 
         let time = include!("../data/wasm_test_data/created_at.txt");
 
-        let root_cert =
-            Certificate::from_pem(include_bytes!("../data/wasm_test_data/root/ecdsa_p384_cert.pem"))
-                .unwrap()
-                .to_der()
-                .unwrap();
-        let int_cert =
-            Certificate::from_pem(include_bytes!("../data/wasm_test_data/int/ecdsa_p384_cert.pem")).unwrap();
-        let end_cert =
-            Certificate::from_pem(include_bytes!("../data/wasm_test_data/end/ecdsa_p384_cert.pem")).unwrap();
+        let root_cert = Certificate::from_pem(include_bytes!(
+            "../data/wasm_test_data/root/ecdsa_p384_cert.pem"
+        ))
+        .unwrap()
+        .to_der()
+        .unwrap();
+        let int_cert = Certificate::from_pem(include_bytes!(
+            "../data/wasm_test_data/int/ecdsa_p384_cert.pem"
+        ))
+        .unwrap();
+        let end_cert = Certificate::from_pem(include_bytes!(
+            "../data/wasm_test_data/end/ecdsa_p384_cert.pem"
+        ))
+        .unwrap();
 
-        let signing_key =
-            p384::SecretKey::from_sec1_pem(include_str!("../data/wasm_test_data/end/ecdsa_p384_key.pem"))
-                .unwrap();
+        let signing_key = p384::SecretKey::from_sec1_pem(include_str!(
+            "../data/wasm_test_data/end/ecdsa_p384_key.pem"
+        ))
+        .unwrap();
         let signing_key: SigningKey = signing_key.into();
 
         let doc = AttestationDoc {
