@@ -23,8 +23,7 @@ impl Driver for Phony {
                 nonce,
                 public_key,
             } => self.attestation(user_data, nonce, public_key),
-            // No current plans to implement this.
-            _ => Response::Error(ErrorCode::InternalError),
+            _ => Response::Error(ErrorCode::InvalidOperation),
         }
     }
 }
