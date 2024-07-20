@@ -1,21 +1,20 @@
 //! Wraps [`aws_nitro_enclaves_nsm_api`] to allow you to mock the Nitro Hypervisor locally
 
-mod cert;
 mod phony;
 
-mod verifier;
-pub use verifier::*;
-mod signer;
-pub use signer::*;
+mod verify;
+pub use verify::*;
+
+mod sign;
+pub use sign::*;
 mod pcrs;
 pub use pcrs::*;
 
 mod nsm;
 pub use nsm::*;
 
-pub(crate) use p384::ecdsa::SigningKey;
-pub use p384::SecretKey;
-pub use webpki::EndEntityCert;
+#[cfg(test)]
+mod test_utils;
 
 #[cfg(test)]
 /// This test suite is expected to reasonable cover all features that WebAssembly support.

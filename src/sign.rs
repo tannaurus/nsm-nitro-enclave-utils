@@ -32,33 +32,43 @@ impl AttestationDocSignerExt for AttestationDoc {
 
 #[cfg(test)]
 mod tests {
-    use crate::pcrs::Pcrs;
-    use crate::signer::AttestationDocSignerExt;
-    use crate::verifier::AttestationDocVerifierExt;
-    use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, Digest};
-    use p384::ecdsa::SigningKey;
     use std::time::{SystemTime, UNIX_EPOCH};
-    use x509_cert::{
-        der::{DecodePem, Encode},
-        Certificate,
-    };
+    use crate::pcrs::Pcrs;
+    use crate::sign::AttestationDocSignerExt;
+    use crate::verify::AttestationDocVerifierExt;
+    use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, Digest};
+    use x509_cert::builder::Profile;
+    use x509_cert::der::Encode;
 
     #[test]
     fn encode_decode() {
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+        let (root_key, root_public_key) = crate::test_utils::generate_key();
         let root_cert =
-            Certificate::from_pem(include_bytes!("../data/certs/root/ecdsa_p384_cert.pem"))
-                .unwrap()
-                .to_der()
-                .unwrap();
-        let int_cert =
-            Certificate::from_pem(include_bytes!("../data/certs/int/ecdsa_p384_cert.pem")).unwrap();
-        let end_cert =
-            Certificate::from_pem(include_bytes!("../data/certs/end/ecdsa_p384_cert.pem")).unwrap();
+            crate::test_utils::build_cert(Profile::Root, root_key.clone(), root_public_key, now);
 
-        let signing_key =
-            p384::SecretKey::from_sec1_pem(include_str!("../data/certs/end/ecdsa_p384_key.pem"))
-                .unwrap();
-        let signing_key: SigningKey = signing_key.into();
+        let (int_key, int_public_key) = crate::test_utils::generate_key();
+        let int_cert = crate::test_utils::build_cert(
+            Profile::SubCA {
+                issuer: Default::default(),
+                path_len_constraint: None,
+            },
+            root_key,
+            int_public_key,
+            now
+        );
+
+        let (end_key, end_public_key) = crate::test_utils::generate_key();
+        let end_cert = crate::test_utils::build_cert(
+            Profile::Leaf {
+                issuer: Default::default(),
+                enable_key_agreement: false,
+                enable_key_encipherment: false,
+            },
+            int_key,
+            end_public_key,
+            now
+        );
 
         let doc = AttestationDoc {
             module_id: "".to_string(),
@@ -75,11 +85,11 @@ mod tests {
             nonce: None,
         };
 
-        let doc = doc.sign(signing_key).unwrap();
+        let doc = doc.sign(end_key).unwrap();
 
         AttestationDoc::from_cose(
             &doc,
-            &root_cert,
+            &root_cert.to_der().unwrap(),
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()

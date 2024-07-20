@@ -1,10 +1,12 @@
-use crate::cert::ChainVerifier;
 use aws_nitro_enclaves_nsm_api::api::AttestationDoc;
 use coset::{CborSerializable, CoseSign1};
 use p384::ecdsa::{signature::Verifier, Signature, VerifyingKey};
 use sealed::sealed;
 use webpki::types::CertificateDer;
 use x509_cert::{der::Decode, Certificate};
+
+mod cert;
+use cert::ChainVerifier;
 
 #[sealed]
 pub trait AttestationDocVerifierExt {

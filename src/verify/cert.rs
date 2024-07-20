@@ -1,10 +1,9 @@
-use crate::EndEntityCert;
 use std::time::Duration;
 use webpki::{
     anchor_from_trusted_cert,
     types::{CertificateDer, TrustAnchor, UnixTime},
-    CertRevocationList, ExpirationPolicy, KeyUsage, RevocationCheckDepth, RevocationOptionsBuilder,
-    UnknownStatusPolicy,
+    CertRevocationList, EndEntityCert, ExpirationPolicy, KeyUsage, RevocationCheckDepth,
+    RevocationOptionsBuilder, UnknownStatusPolicy,
 };
 
 #[must_use = "ChainVerifier must be verified"]
