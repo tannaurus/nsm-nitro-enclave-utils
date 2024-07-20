@@ -4,9 +4,9 @@ use crate::sign::AttestationDocSignerExt;
 use crate::Nsm;
 use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, ErrorCode, Request, Response};
 use p384::ecdsa::SigningKey;
-use p384::SecretKey;
 use serde_bytes::ByteBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
+pub use p384::SecretKey;
 
 pub(crate) struct Phony {
     pub(crate) signing_key: SigningKey,
