@@ -1,14 +1,16 @@
 //! Wraps [`aws_nitro_enclaves_nsm_api`] to allow you to mock the Nitro Hypervisor locally
 
-mod phony;
-
+#[cfg(feature = "verify")]
 mod verify;
+#[cfg(feature = "verify")]
 pub use verify::*;
 
 mod sign;
 pub use sign::*;
 mod pcrs;
 pub use pcrs::*;
+
+mod phony;
 
 mod nsm;
 pub use nsm::*;
