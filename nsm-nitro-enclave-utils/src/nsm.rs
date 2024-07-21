@@ -1,9 +1,12 @@
-use crate::{api::{
-    nsm::{Request, Response},
-    ByteBuf, GetTimestamp, SecretKey,
-}, PhonyBuilder};
+use crate::{
+    api::{
+        nsm::{Request, Response},
+        ByteBuf, GetTimestamp, SecretKey,
+    },
+    PhonyBuilder,
+};
 
-pub(crate) trait Driver {
+pub(crate) trait Driver: Send + Sync {
     fn process_request(&self, request: Request) -> Response;
 }
 

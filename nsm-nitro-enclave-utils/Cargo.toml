@@ -1,0 +1,34 @@
+[package]
+name = "nsm-nitro-enclave-utils"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["nitro"]
+rand = ["dep:rand"]
+seed = ["dep:sha2"]
+verify = ["dep:rustls-webpki"]
+nitro = ["aws-nitro-enclaves-nsm-api/nix"]
+
+[dependencies]
+serde_cbor = "0.11"
+serde_bytes = "0.11"
+hex = "0.4"
+coset = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+x509-cert = { version =  "0.2", features = ["builder"] }
+p384 = { version = "0.13" }
+sealed = "0.5"
+aws-nitro-enclaves-nsm-api = { version = "0.4.0", default-features = false }
+sha2 = { version = "0.10", optional = true }
+rand = { version = "0.8", optional = true }
+rustls-webpki = { version = "0.102", features = ["ring"], optional = true }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+rand = "0.8"
+sha2 = { version = "0.10", features = ["oid"] }

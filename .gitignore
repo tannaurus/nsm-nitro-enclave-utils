@@ -20,9 +20,13 @@ Cargo.lock
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 # .idea/
 
-data/wasm_test_data/end/*
-data/wasm_test_data/int/*
-data/wasm_test_data/root/*
-data/wasm_test_data/created_at.txt
+**/wasm_test_data/end/*
+**/wasm_test_data/int/*
+**/wasm_test_data/root/*
+**/wasm_test_data/created_at.txt
 
-/pkg
+nsm-nitro-enclave-utils/pkg
+
+# Added by cargo
+
+/target
