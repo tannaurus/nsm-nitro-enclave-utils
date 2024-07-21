@@ -1,12 +1,10 @@
-use crate::nsm::Driver;
-use crate::pcrs::Pcrs;
-use crate::sign::AttestationDocSignerExt;
-use crate::Nsm;
+use crate::{AttestationDocSignerExt, Driver, Nsm, Pcrs};
 use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, ErrorCode, Request, Response};
 use p384::ecdsa::SigningKey;
-pub use p384::SecretKey;
 use serde_bytes::ByteBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+pub use p384::SecretKey;
 
 /// Must return UTC time when document was created expressed as milliseconds since Unix Epoch
 /// This is an `Fn` to support WebAssembly targets, which don't support `SystemTime`

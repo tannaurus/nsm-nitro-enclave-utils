@@ -132,6 +132,6 @@ mod tests {
                 .unwrap()
                 .as_secs(),
         )
-            .unwrap();
+        .unwrap();
     }
 }

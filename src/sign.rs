@@ -1,8 +1,6 @@
 use aws_nitro_enclaves_nsm_api::api::AttestationDoc;
-use coset::iana::Algorithm;
-use coset::{CborSerializable, CoseSign1Builder, HeaderBuilder};
-use p384::ecdsa::signature::Signer;
-use p384::ecdsa::{Signature, SigningKey};
+use coset::{iana::Algorithm, CborSerializable, CoseSign1Builder, HeaderBuilder};
+use p384::ecdsa::{signature::Signer, Signature, SigningKey};
 use sealed::sealed;
 
 #[sealed]

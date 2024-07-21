@@ -20,7 +20,7 @@ mod test_utils;
 
 #[cfg(test)]
 /// This test suite is expected to reasonable cover all features that WebAssembly support.
-/// wasm-pack test --node --no-default-features --features seed,rand
+/// See README for instructions for running these tests.
 mod wasm_tests {
     use crate::phony::GetTimestamp;
     use crate::NsmBuilder;
