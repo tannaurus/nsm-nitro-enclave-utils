@@ -1,4 +1,4 @@
-use crate::phony::PhonyBuilder;
+use crate::phony::{GetTimestamp, PhonyBuilder};
 use aws_nitro_enclaves_nsm_api::api::{Request, Response};
 use p384::SecretKey;
 use serde_bytes::ByteBuf;
@@ -62,8 +62,13 @@ impl NsmBuilder {
     }
 
     /// Creates a new [`PhonyBuilder`], which supports "bring your own pki"
-    pub fn dev_mode(self, signing_key: SecretKey, end_cert: ByteBuf) -> PhonyBuilder {
-        PhonyBuilder::new(signing_key, end_cert)
+    pub fn dev_mode(
+        self,
+        signing_key: SecretKey,
+        end_cert: ByteBuf,
+        get_timestamp: GetTimestamp,
+    ) -> PhonyBuilder {
+        PhonyBuilder::new(signing_key, end_cert, get_timestamp)
     }
 
     #[cfg(feature = "nitro")]

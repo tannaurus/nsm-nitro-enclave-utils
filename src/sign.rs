@@ -32,16 +32,17 @@ impl AttestationDocSignerExt for AttestationDoc {
 
 #[cfg(test)]
 mod tests {
-    use crate::pcrs::Pcrs;
-    use crate::sign::AttestationDocSignerExt;
-    use crate::verify::AttestationDocVerifierExt;
-    use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, Digest};
-    use std::time::{SystemTime, UNIX_EPOCH};
-    use x509_cert::builder::Profile;
-    use x509_cert::der::Encode;
-
+    #[cfg(feature = "verify")]
     #[test]
     fn encode_decode() {
+        use crate::pcrs::Pcrs;
+        use crate::sign::AttestationDocSignerExt;
+        use crate::verify::AttestationDocVerifierExt;
+        use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, Digest};
+        use std::time::{SystemTime, UNIX_EPOCH};
+        use x509_cert::builder::Profile;
+        use x509_cert::der::Encode;
+
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
         let (root_key, root_public_key) = crate::test_utils::generate_key();
         let root_cert =

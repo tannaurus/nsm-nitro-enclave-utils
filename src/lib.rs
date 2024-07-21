@@ -22,8 +22,15 @@ mod test_utils;
 /// This test suite is expected to reasonable cover all features that WebAssembly support.
 /// wasm-pack test --node --no-default-features --features seed,rand
 mod wasm_tests {
+    use crate::phony::GetTimestamp;
+    use crate::NsmBuilder;
+    use aws_nitro_enclaves_nsm_api::api::{Request, Response};
+    use std::mem;
     use wasm_bindgen_test::*;
+    use x509_cert::der::{DecodePem, Encode};
+    use x509_cert::Certificate;
 
+    #[cfg(feature = "verify")]
     #[wasm_bindgen_test]
     fn verifier() {
         use crate::{pcrs::Pcrs, sign::AttestationDocSignerExt, verify::AttestationDocVerifierExt};
@@ -72,6 +79,40 @@ mod wasm_tests {
         let doc = doc.sign(signing_key).unwrap();
 
         AttestationDoc::from_cose(&doc, &root_cert, time).unwrap();
+    }
+
+    #[wasm_bindgen_test]
+    fn phony_driver() {
+        let secret_key = p384::SecretKey::from_sec1_pem(include_str!(
+            "../data/wasm_test_data/end/ecdsa_p384_key.pem"
+        ))
+        .unwrap();
+        let end_cert = Certificate::from_pem(include_bytes!(
+            "../data/wasm_test_data/end/ecdsa_p384_cert.pem"
+        ))
+        .unwrap();
+
+        let time = include!("../data/wasm_test_data/created_at.txt");
+        let nsm = NsmBuilder::new()
+            .dev_mode(
+                secret_key,
+                end_cert.to_der().unwrap().into(),
+                GetTimestamp::new(Box::new(move || time)),
+            )
+            .build();
+
+        let response = nsm.process_request(Request::Attestation {
+            user_data: None,
+            nonce: None,
+            public_key: None,
+        });
+
+        assert_eq!(
+            mem::discriminant(&response),
+            mem::discriminant(&Response::Attestation {
+                document: Vec::new()
+            })
+        );
     }
 
     #[cfg(feature = "seed")]
