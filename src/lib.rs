@@ -7,14 +7,14 @@ pub use verify::*;
 
 mod sign;
 pub use sign::*;
-mod pcrs;
-pub use pcrs::*;
 
 mod phony;
+pub use phony::*;
 
 mod nsm;
 pub use nsm::*;
 
+pub mod api;
 #[cfg(test)]
 mod test_utils;
 
@@ -22,24 +22,18 @@ mod test_utils;
 /// This test suite is expected to reasonable cover all features that WebAssembly support.
 /// See README for instructions for running these tests.
 mod wasm_tests {
-    use crate::phony::GetTimestamp;
-    use crate::NsmBuilder;
-    use aws_nitro_enclaves_nsm_api::api::{Request, Response};
+    use super::*;
     use std::mem;
     use wasm_bindgen_test::*;
-    use x509_cert::der::{DecodePem, Encode};
-    use x509_cert::Certificate;
+    use x509_cert::{
+        der::{DecodePem, Encode},
+        Certificate,
+    };
 
     #[cfg(feature = "verify")]
     #[wasm_bindgen_test]
     fn verifier() {
-        use crate::{pcrs::Pcrs, sign::AttestationDocSignerExt, verify::AttestationDocVerifierExt};
-        use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, Digest};
         use p384::ecdsa::SigningKey;
-        use x509_cert::{
-            der::{DecodePem, Encode},
-            Certificate,
-        };
 
         let time = include!("../data/wasm_test_data/created_at.txt");
 
@@ -64,9 +58,9 @@ mod wasm_tests {
         .unwrap();
         let signing_key: SigningKey = signing_key.into();
 
-        let doc = AttestationDoc {
+        let doc = api::nsm::AttestationDoc {
             module_id: "".to_string(),
-            digest: Digest::SHA384,
+            digest: api::nsm::Digest::SHA384,
             timestamp: time,
             pcrs: Pcrs::default().into(),
             certificate: end_cert.to_der().unwrap().into(),
@@ -78,7 +72,7 @@ mod wasm_tests {
 
         let doc = doc.sign(signing_key).unwrap();
 
-        AttestationDoc::from_cose(&doc, &root_cert, time).unwrap();
+        api::nsm::AttestationDoc::from_cose(&doc, &root_cert, time).unwrap();
     }
 
     #[wasm_bindgen_test]
@@ -101,7 +95,7 @@ mod wasm_tests {
             )
             .build();
 
-        let response = nsm.process_request(Request::Attestation {
+        let response = nsm.process_request(api::nsm::Request::Attestation {
             user_data: None,
             nonce: None,
             public_key: None,
@@ -109,7 +103,7 @@ mod wasm_tests {
 
         assert_eq!(
             mem::discriminant(&response),
-            mem::discriminant(&Response::Attestation {
+            mem::discriminant(&api::nsm::Response::Attestation {
                 document: Vec::new()
             })
         );
@@ -118,15 +112,12 @@ mod wasm_tests {
     #[cfg(feature = "seed")]
     #[wasm_bindgen_test]
     fn seed_is_deterministic() {
-        use crate::Pcrs;
-
-        let seed: [String; crate::pcrs::PCR_COUNT] = core::array::from_fn(|i| format!("pcr{i}"));
+        let seed: [String; PCR_COUNT] = core::array::from_fn(|i| format!("pcr{i}"));
         let a = Pcrs::seed(seed.clone()).unwrap();
         let b = Pcrs::seed(seed).unwrap();
         assert_eq!(a, b);
 
-        let alt_seed: [String; crate::pcrs::PCR_COUNT] =
-            core::array::from_fn(|i| format!("pcr{}", i + 1));
+        let alt_seed: [String; PCR_COUNT] = core::array::from_fn(|i| format!("pcr{}", i + 1));
         let c = Pcrs::seed(alt_seed).unwrap();
         assert_ne!(a, c);
     }
@@ -134,8 +125,6 @@ mod wasm_tests {
     #[cfg(feature = "rand")]
     #[wasm_bindgen_test]
     fn rand() {
-        use crate::Pcrs;
-
         let a = Pcrs::rand();
         let b = Pcrs::rand();
         assert_ne!(a, b);

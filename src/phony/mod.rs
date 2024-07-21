@@ -1,10 +1,14 @@
-use crate::{AttestationDocSignerExt, Driver, Nsm, Pcrs};
-use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, ErrorCode, Request, Response};
+use crate::{
+    api::{
+        nsm::{AttestationDoc, ErrorCode, Request, Response},
+        ByteBuf, SecretKey,
+    },
+    AttestationDocSignerExt, Driver, Nsm,
+};
 use p384::ecdsa::SigningKey;
-use serde_bytes::ByteBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
 
-pub use p384::SecretKey;
+mod pcrs;
+pub use pcrs::*;
 
 /// Must return UTC time when document was created expressed as milliseconds since Unix Epoch
 /// This is an `Fn` to support WebAssembly targets, which don't support `SystemTime`
@@ -20,6 +24,7 @@ impl GetTimestamp {
     #[cfg(not(target_arch = "wasm32"))]
     /// Creates a new [`GetTimestamp`] using [`SystemTime`]. Not compatible with WebAssembly targets.
     pub fn system_time() -> Self {
+        use std::time::{SystemTime, UNIX_EPOCH};
         Self(Box::new(move || {
             u64::try_from(
                 SystemTime::now()
@@ -32,12 +37,12 @@ impl GetTimestamp {
     }
 }
 
-pub(crate) struct Phony {
-    pub(crate) signing_key: SigningKey,
-    pub(crate) end_cert: ByteBuf,
-    pub(crate) ca_bundle: Vec<ByteBuf>,
-    pub(crate) pcrs: Pcrs,
-    pub(crate) get_timestamp: GetTimestamp,
+struct Phony {
+    signing_key: SigningKey,
+    end_cert: ByteBuf,
+    ca_bundle: Vec<ByteBuf>,
+    pcrs: Pcrs,
+    get_timestamp: GetTimestamp,
 }
 
 impl Driver for Phony {
@@ -104,7 +109,11 @@ impl PhonyBuilder {
     /// `signing_key`: used to sign the attestation document
     /// `end_cert` a der encoded x509 certificate. Should contain `signing_key`'s public key.
     /// `get_timestamp` must return UTC time when document was created expressed as milliseconds since Unix Epoch
-    pub fn new(signing_key: SecretKey, end_cert: ByteBuf, get_timestamp: GetTimestamp) -> Self {
+    pub(crate) fn new(
+        signing_key: SecretKey,
+        end_cert: ByteBuf,
+        get_timestamp: GetTimestamp,
+    ) -> Self {
         Self {
             signing_key: signing_key.into(),
             end_cert,

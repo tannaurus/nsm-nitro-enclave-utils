@@ -1,7 +1,7 @@
-use crate::phony::{GetTimestamp, PhonyBuilder};
-use aws_nitro_enclaves_nsm_api::api::{Request, Response};
-use p384::SecretKey;
-use serde_bytes::ByteBuf;
+use crate::{api::{
+    nsm::{Request, Response},
+    ByteBuf, GetTimestamp, SecretKey,
+}, PhonyBuilder};
 
 pub(crate) trait Driver {
     fn process_request(&self, request: Request) -> Response;

@@ -1,4 +1,4 @@
-use aws_nitro_enclaves_nsm_api::api::AttestationDoc;
+use crate::api::nsm::AttestationDoc;
 use coset::{CborSerializable, CoseSign1};
 use p384::ecdsa::{signature::Verifier, Signature, VerifyingKey};
 use sealed::sealed;
@@ -71,13 +71,12 @@ impl AttestationDocVerifierExt for AttestationDoc {
 mod tests {
     #[test]
     fn encode_decode() {
-        use crate::pcrs::Pcrs;
-        use crate::sign::AttestationDocSignerExt;
-        use crate::verify::AttestationDocVerifierExt;
-        use aws_nitro_enclaves_nsm_api::api::{AttestationDoc, Digest};
+        use crate::{
+            api::nsm::{AttestationDoc, Digest},
+            AttestationDocSignerExt, AttestationDocVerifierExt, Pcrs,
+        };
         use std::time::{SystemTime, UNIX_EPOCH};
-        use x509_cert::builder::Profile;
-        use x509_cert::der::Encode;
+        use x509_cert::{builder::Profile, der::Encode};
 
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
         let (root_key, root_public_key) = crate::test_utils::generate_key();
