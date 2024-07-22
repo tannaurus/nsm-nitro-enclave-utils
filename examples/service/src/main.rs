@@ -9,15 +9,23 @@ use clap::Parser;
 use nsm_nitro_enclave_utils::{
     api::{
         nsm::{Request as NsmRequest, Response as NsmResponse},
-        ByteBuf, GetTimestamp, SecretKey,
+        ByteBuf,
     },
-    Nsm, NsmBuilder, Pcrs,
+    Nsm, NsmBuilder,
+};
+#[cfg(feature = "dev")]
+use nsm_nitro_enclave_utils::{
+    api::{GetTimestamp, SecretKey},
+    Pcrs,
 };
 use serde::Serialize;
 use std::sync::Arc;
+#[cfg(feature = "dev")]
 use x509_cert::der::{DecodePem, Encode};
+#[cfg(feature = "dev")]
 use x509_cert::Certificate;
 
+#[allow(unused)]
 #[derive(Parser, Debug)]
 struct Args {
     #[arg(long, allow_hyphen_values = true)]
@@ -35,13 +43,16 @@ struct AppState {
 
 #[tokio::main]
 async fn main() {
+    #[cfg(feature = "dev")]
     let args = Args::parse();
-
+    #[cfg(feature = "dev")]
     let signing_key = SecretKey::from_sec1_pem(&args.signing_key_pem).unwrap();
-
+    #[cfg(feature = "dev")]
     let end_cert = Certificate::from_pem(args.end_cert_pem).unwrap();
+    #[cfg(feature = "dev")]
     let end_cert = ByteBuf::from(end_cert.to_der().unwrap());
 
+    #[cfg(feature = "dev")]
     let int_certs = args
         .int_cert_pem
         .into_iter()
