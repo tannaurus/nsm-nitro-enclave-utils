@@ -76,7 +76,7 @@ impl NsmBuilder {
 
     #[cfg(feature = "nitro")]
     /// Creates a driver for authentic Nitro Secure Modules
-    pub fn init(self) -> Nsm {
+    pub fn build(self) -> Nsm {
         Nsm::init()
     }
 }
