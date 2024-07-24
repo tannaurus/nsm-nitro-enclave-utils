@@ -23,6 +23,7 @@ mod test_utils;
 /// See README for instructions for running these tests.
 mod wasm_tests {
     use super::*;
+    use std::collections::BTreeMap;
     use std::mem;
     use wasm_bindgen_test::*;
     use x509_cert::{
@@ -112,12 +113,18 @@ mod wasm_tests {
     #[cfg(feature = "seed")]
     #[wasm_bindgen_test]
     fn seed_is_deterministic() {
-        let seed: [String; PCR_COUNT] = core::array::from_fn(|i| format!("pcr{i}"));
+        let mut seed = BTreeMap::new();
+        for index in PCR_INDEXES {
+            seed.insert(index, index.to_string());
+        }
         let a = Pcrs::seed(seed.clone()).unwrap();
         let b = Pcrs::seed(seed).unwrap();
         assert_eq!(a, b);
 
-        let alt_seed: [String; PCR_COUNT] = core::array::from_fn(|i| format!("pcr{}", i + 1));
+        let mut alt_seed = BTreeMap::new();
+        for index in PCR_INDEXES {
+            alt_seed.insert(index, (index + 1).to_string());
+        }
         let c = Pcrs::seed(alt_seed).unwrap();
         assert_ne!(a, c);
     }
