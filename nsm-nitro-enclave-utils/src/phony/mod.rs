@@ -53,7 +53,7 @@ impl Phony {
         public_key: Option<ByteBuf>,
     ) -> Response {
         let doc = AttestationDoc {
-            module_id: "property-of-nsm-halcyon".to_string(),
+            module_id: "unsecure-development-attestation-document".to_string(),
             digest: aws_nitro_enclaves_nsm_api::api::Digest::SHA384,
             timestamp: self.get_timestamp.time(),
             pcrs: self.pcrs.clone().into(),
