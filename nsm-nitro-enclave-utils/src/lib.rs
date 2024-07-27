@@ -23,7 +23,6 @@ mod test_utils;
 /// See README for instructions for running these tests.
 mod wasm_tests {
     use super::*;
-    use std::collections::BTreeMap;
     use std::mem;
     use wasm_bindgen_test::*;
     use x509_cert::{
@@ -113,6 +112,8 @@ mod wasm_tests {
     #[cfg(feature = "seed")]
     #[wasm_bindgen_test]
     fn seed_is_deterministic() {
+        use std::collections::BTreeMap;
+
         let mut seed = BTreeMap::new();
         for index in PCR_INDEXES {
             seed.insert(index, index.to_string());
