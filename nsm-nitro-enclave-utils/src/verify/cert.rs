@@ -2,8 +2,7 @@ use std::time::Duration;
 use webpki::{
     anchor_from_trusted_cert,
     types::{CertificateDer, TrustAnchor, UnixTime},
-    CertRevocationList, EndEntityCert, ExpirationPolicy, KeyUsage, RevocationCheckDepth,
-    RevocationOptionsBuilder, UnknownStatusPolicy,
+    EndEntityCert, KeyUsage,
 };
 
 #[must_use = "ChainVerifier must be verified"]
@@ -35,22 +34,13 @@ impl<'a> ChainVerifier<'a> {
         })
     }
 
+    /// Verifies the certificate chain
+    /// AWS's documentation explicitly requires ["CRL must be disabled when doing the validation"](https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html#chain)
+    /// The AWS Nitro Enclave signing certificate has .
     pub(crate) fn verify(
         self,
         time: u64,
-        crls: Option<&[&CertRevocationList]>,
     ) -> Result<(), &'static str> {
-        let revocation_options = crls
-            .map(|crls| {
-                Ok(RevocationOptionsBuilder::new(crls)
-                    .map_err(|_| "Failed to create revocation builder")?
-                    .with_expiration_policy(ExpirationPolicy::Enforce)
-                    .with_depth(RevocationCheckDepth::Chain)
-                    .with_status_policy(UnknownStatusPolicy::Deny)
-                    .build())
-            })
-            .transpose()?;
-
         self.end_cert
             .verify_for_usage(
                 &[webpki::ring::ECDSA_P384_SHA384],
@@ -58,10 +48,10 @@ impl<'a> ChainVerifier<'a> {
                 &self.int_certs,
                 UnixTime::since_unix_epoch(Duration::from_secs(time)),
                 KeyUsage::server_auth(),
-                revocation_options,
+                None,
                 None,
             )
-            .unwrap();
+            .map_err(|_| "Failed to verify certificate chain")?;
 
         Ok(())
     }

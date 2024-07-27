@@ -17,6 +17,11 @@ pub trait AttestationDocVerifierExt {
     ) -> Result<AttestationDoc, &'static str>;
 }
 
+/// This implementation implements the 4 steps outlined in the AWS Nitro Enclaves ["verify root" documentation](https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html)
+/// 1. Decode the CBOR object and map it to a COSE_Sign1 structure.
+/// 2. Extract the attestation document from the COSE_Sign1 structure.
+/// 3. Verify the certificate's chain.
+/// 4. Ensure that the attestation document is properly signed.
 #[sealed]
 impl AttestationDocVerifierExt for AttestationDoc {
     fn from_cose(
@@ -39,7 +44,7 @@ impl AttestationDocVerifierExt for AttestationDoc {
         let end_cert = CertificateDer::from(attestation_doc.certificate.as_slice());
         let root_cert = CertificateDer::from(root_cert);
 
-        ChainVerifier::new(&root_cert, &intermediate_certs, &end_cert)?.verify(time, None)?;
+        ChainVerifier::new(&root_cert, &intermediate_certs, &end_cert)?.verify(time)?;
 
         let doc_cert = Certificate::from_der(&attestation_doc.certificate)
             .map_err(|_| "Failed to decode attestation certificate")?;
