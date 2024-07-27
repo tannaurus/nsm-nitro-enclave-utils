@@ -36,7 +36,6 @@ impl<'a> ChainVerifier<'a> {
 
     /// Verifies the certificate chain
     /// AWS's documentation explicitly requires ["CRL must be disabled when doing the validation"](https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html#chain)
-    /// The AWS Nitro Enclave signing certificate has .
     pub(crate) fn verify(
         self,
         time: u64,
