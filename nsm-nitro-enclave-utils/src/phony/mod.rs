@@ -8,41 +8,10 @@ use crate::{
 use p384::ecdsa::SigningKey;
 
 mod pcrs;
+
 pub use pcrs::*;
-
-/// Must return UTC time when document was created expressed as milliseconds since Unix Epoch
-/// This is an `Fn` to support WebAssembly targets, which don't support `SystemTime`
-pub struct GetTimestamp(Box<dyn Fn() -> u64 + Send + Sync>);
-
-#[cfg(not(target_arch = "wasm32"))]
-impl Default for GetTimestamp {
-    fn default() -> Self {
-        Self::system_time()
-    }
-}
-
-impl GetTimestamp {
-    /// Must return UTC time when document was created expressed as milliseconds since Unix Epoch.
-    /// If you aren't targeting WebAssembly, you should probably use [`GetTimestamp::system_time`]
-    pub fn new(getter: Box<dyn Fn() -> u64 + Send + Sync>) -> Self {
-        Self(getter)
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    /// Creates a new [`GetTimestamp`] using [`SystemTime`]. Not compatible with WebAssembly targets.
-    pub fn system_time() -> Self {
-        use std::time::{SystemTime, UNIX_EPOCH};
-        Self(Box::new(move || {
-            u64::try_from(
-                SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .expect("Land before time 🦕")
-                    .as_millis(),
-            )
-            .expect("This code has exceeded my lifetime")
-        }))
-    }
-}
+mod time;
+pub use time::*;
 
 struct Phony {
     signing_key: SigningKey,
@@ -86,7 +55,7 @@ impl Phony {
         let doc = AttestationDoc {
             module_id: "property-of-nsm-halcyon".to_string(),
             digest: aws_nitro_enclaves_nsm_api::api::Digest::SHA384,
-            timestamp: self.get_timestamp.0(),
+            timestamp: self.get_timestamp.time(),
             pcrs: self.pcrs.clone().into(),
             certificate: self.end_cert.clone(),
             cabundle: self.ca_bundle.clone(),
