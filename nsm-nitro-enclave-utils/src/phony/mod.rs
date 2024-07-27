@@ -14,6 +14,13 @@ pub use pcrs::*;
 /// This is an `Fn` to support WebAssembly targets, which don't support `SystemTime`
 pub struct GetTimestamp(Box<dyn Fn() -> u64 + Send + Sync>);
 
+#[cfg(not(target_arch = "wasm32"))]
+impl Default for GetTimestamp {
+    fn default() -> Self {
+        Self::system_time()
+    }
+}
+
 impl GetTimestamp {
     /// Must return UTC time when document was created expressed as milliseconds since Unix Epoch.
     /// If you aren't targeting WebAssembly, you should probably use [`GetTimestamp::system_time`]

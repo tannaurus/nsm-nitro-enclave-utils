@@ -65,7 +65,7 @@ async fn main() {
     // You can enable this while working locally, ensuring it's disabled when this service is deployed.
     #[cfg(feature = "dev")]
     let nitro = nitro
-        .dev_mode(signing_key, end_cert, GetTimestamp::system_time())
+        .dev_mode(signing_key, end_cert, GetTimestamp::default())
         // Using `Pcrs::zeros` to get attestation documents similar to how the Nsm module will return all zeros in "debug mode"
         // https://docs.aws.amazon.com/enclaves/latest/user/getting-started.html#run
         // `Pcrs` can be generated in another ways too, but some of them require extra feature flags not enabled in this binary.
