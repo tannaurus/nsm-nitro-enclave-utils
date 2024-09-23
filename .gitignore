@@ -10,9 +10,5 @@ target/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 # .idea/
 
-**/wasm_test_data/end/*
-**/wasm_test_data/int/*
-**/wasm_test_data/root/*
-**/wasm_test_data/created_at.txt
 nsm-nitro-enclave-utils/pkg
 /target
