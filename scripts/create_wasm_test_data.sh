@@ -1,11 +1,11 @@
 #!/bin/bash
 
-CERT_DIRECTORY="./data/wasm_test_data"
+CERT_DIRECTORY="./nsm-nitro-enclave-utils/wasm_test_data"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ROOT_CERT_DIR="$CERT_DIRECTORY"/root
 INT_CERT_DIR="$CERT_DIRECTORY"/int
 END_CERT_DIR="$CERT_DIRECTORY"/end
-CERT_DIRS=(
+CLEAN_UP_CERT_DIRS=(
   "$ROOT_CERT_DIR"
   "$INT_CERT_DIR"
   "$END_CERT_DIR"
@@ -19,12 +19,14 @@ echo "Generating certs..."
 sleep 3
 
 echo "Cleaning up..."
-for i in "${CERT_DIRS[@]}"
+for i in "${CLEAN_UP_CERT_DIRS[@]}"
 do
-        rm "$i"/ecdsa_p384.csr
+    if [ -f "$i"/ecdsa_p384_cert.srl ]; then
         rm "$i"/ecdsa_p384_cert.srl
+    fi
+        rm "$i"/ecdsa_p384.csr
 done
 
-date +%s > "$CERT_DIRECTORY"/created_at.txt
+echo $(($(date +%s) * 1000)) > "$CERT_DIRECTORY"/created_at.txt
 
 echo "Done 🚀"
