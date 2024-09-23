@@ -19,21 +19,32 @@ use nsm_nitro_enclave_utils::{
     Pcrs,
 };
 use serde::Serialize;
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 #[cfg(feature = "dev")]
 use x509_cert::der::{DecodePem, Encode};
 #[cfg(feature = "dev")]
 use x509_cert::Certificate;
 
-#[allow(unused)]
 #[derive(Parser, Debug)]
 struct Args {
-    #[arg(long, allow_hyphen_values = true)]
-    signing_key_pem: String,
-    #[arg(long, allow_hyphen_values = true)]
-    end_cert_pem: String,
-    #[arg(long, allow_hyphen_values = true)]
-    int_cert_pem: Vec<String>,
+    #[arg(
+        long,
+        allow_hyphen_values = true,
+        default_value = "../test_data/end/ecdsa_p384_key.pem"
+    )]
+    signing_key_pem: PathBuf,
+    #[arg(
+        long,
+        allow_hyphen_values = true,
+        default_value = "../test_data/end/ecdsa_p384_cert.pem"
+    )]
+    end_cert_pem: PathBuf,
+    #[arg(
+        long,
+        allow_hyphen_values = true,
+        default_value = "../test_data/int/ecdsa_p384_cert.pem"
+    )]
+    int_cert_pem: Vec<PathBuf>,
 }
 
 #[derive(Clone)]
@@ -46,17 +57,25 @@ async fn main() {
     #[cfg(feature = "dev")]
     let args = Args::parse();
     #[cfg(feature = "dev")]
-    let signing_key = SecretKey::from_sec1_pem(&args.signing_key_pem).unwrap();
+    let signing_key = {
+        let pem = std::fs::read_to_string(&args.signing_key_pem).unwrap();
+        SecretKey::from_sec1_pem(&pem).unwrap()
+    };
     #[cfg(feature = "dev")]
-    let end_cert = Certificate::from_pem(args.end_cert_pem).unwrap();
-    #[cfg(feature = "dev")]
-    let end_cert = ByteBuf::from(end_cert.to_der().unwrap());
+    let end_cert = {
+        let pem = std::fs::read_to_string(&args.end_cert_pem).unwrap();
+        ByteBuf::from(Certificate::from_pem(&pem).unwrap().to_der().unwrap())
+    };
 
     #[cfg(feature = "dev")]
     let int_certs = args
         .int_cert_pem
         .into_iter()
-        .map(|pem| ByteBuf::from(Certificate::from_pem(pem).unwrap().to_der().unwrap()))
+        .map(|path| {
+            print!("path: {:?}", path);
+            let pem = std::fs::read_to_string(&path).unwrap();
+            ByteBuf::from(Certificate::from_pem(&pem).unwrap().to_der().unwrap())
+        })
         .collect::<Vec<ByteBuf>>();
 
     let nitro = NsmBuilder::new();
@@ -101,8 +120,6 @@ async fn attest(State(app_state): State<AppState>, Path(nonce): Path<String>) ->
         public_key: None,
         nonce: Some(ByteBuf::from(nonce.as_bytes())),
     });
-
-    println!("Nsm response: {:?}", response);
 
     if let NsmResponse::Attestation { document } = response {
         return (

@@ -38,24 +38,23 @@ mod wasm_tests {
     fn verifier() {
         use p384::ecdsa::SigningKey;
 
-        let time = GetTimestamp::new(Box::new(|| include!("../wasm_test_data/created_at.txt")));
+        let time = GetTimestamp::new(Box::new(|| include!("../../test_data/created_at.txt")));
 
         let root_cert =
-            Certificate::from_pem(include_bytes!("../wasm_test_data/root/ecdsa_p384_cert.pem"))
+            Certificate::from_pem(include_bytes!("../../test_data/root/ecdsa_p384_cert.pem"))
                 .unwrap()
                 .to_der()
                 .unwrap();
         let int_cert =
-            Certificate::from_pem(include_bytes!("../wasm_test_data/int/ecdsa_p384_cert.pem"))
+            Certificate::from_pem(include_bytes!("../../test_data/int/ecdsa_p384_cert.pem"))
                 .unwrap();
         let end_cert =
-            Certificate::from_pem(include_bytes!("../wasm_test_data/end/ecdsa_p384_cert.pem"))
+            Certificate::from_pem(include_bytes!("../../test_data/end/ecdsa_p384_cert.pem"))
                 .unwrap();
 
-        let signing_key = p384::SecretKey::from_sec1_pem(include_str!(
-            "../wasm_test_data/end/ecdsa_p384_key.pem"
-        ))
-        .unwrap();
+        let signing_key =
+            p384::SecretKey::from_sec1_pem(include_str!("../../test_data/end/ecdsa_p384_key.pem"))
+                .unwrap();
         let signing_key: SigningKey = signing_key.into();
 
         let doc = api::nsm::AttestationDoc {
@@ -77,15 +76,14 @@ mod wasm_tests {
 
     #[wasm_bindgen_test]
     fn phony_driver() {
-        let secret_key = p384::SecretKey::from_sec1_pem(include_str!(
-            "../wasm_test_data/end/ecdsa_p384_key.pem"
-        ))
-        .unwrap();
+        let secret_key =
+            p384::SecretKey::from_sec1_pem(include_str!("../../test_data/end/ecdsa_p384_key.pem"))
+                .unwrap();
         let end_cert =
-            Certificate::from_pem(include_bytes!("../wasm_test_data/end/ecdsa_p384_cert.pem"))
+            Certificate::from_pem(include_bytes!("../../test_data/end/ecdsa_p384_cert.pem"))
                 .unwrap();
 
-        let time = include!("../wasm_test_data/created_at.txt");
+        let time = include!("../../test_data/created_at.txt");
         let nsm = NsmBuilder::new()
             .dev_mode(
                 secret_key,
