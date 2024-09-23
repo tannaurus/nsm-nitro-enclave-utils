@@ -1,9 +1,8 @@
 use clap::Parser;
 use nsm_nitro_enclave_utils::api::nsm::AttestationDoc;
-use nsm_nitro_enclave_utils::AttestationDocVerifierExt;
+use nsm_nitro_enclave_utils::{AttestationDocVerifierExt, GetTimestamp};
 use reqwest::StatusCode;
 use serde::Deserialize;
-use std::time::{SystemTime, UNIX_EPOCH};
 use x509_cert::der::{DecodePem, Encode};
 use x509_cert::Certificate;
 
@@ -42,10 +41,7 @@ async fn main() {
     let doc = AttestationDoc::from_cose(
         &response.document,
         &root_cert,
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs(),
+        GetTimestamp::default(),
     )
     .unwrap();
 

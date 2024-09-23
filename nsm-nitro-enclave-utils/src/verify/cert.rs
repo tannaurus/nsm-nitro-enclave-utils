@@ -4,6 +4,7 @@ use webpki::{
     types::{CertificateDer, TrustAnchor, UnixTime},
     EndEntityCert, KeyUsage,
 };
+use crate::time::GetTimestamp;
 
 #[must_use = "ChainVerifier must be verified"]
 pub(crate) struct ChainVerifier<'a> {
@@ -38,14 +39,14 @@ impl<'a> ChainVerifier<'a> {
     /// AWS's documentation explicitly requires ["CRL must be disabled when doing the validation"](https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html#chain)
     pub(crate) fn verify(
         self,
-        time: u64,
+        get_time: GetTimestamp,
     ) -> Result<(), &'static str> {
         self.end_cert
             .verify_for_usage(
                 &[webpki::ring::ECDSA_P384_SHA384],
                 &[self.trust_anchor],
                 &self.int_certs,
-                UnixTime::since_unix_epoch(Duration::from_secs(time)),
+                UnixTime::since_unix_epoch(Duration::from_millis(get_time.time())),
                 KeyUsage::server_auth(),
                 None,
                 None,

@@ -17,6 +17,8 @@ pub use nsm::*;
 pub mod api;
 #[cfg(test)]
 mod test_utils;
+mod time;
+pub use time::*;
 
 #[cfg(test)]
 /// This test suite is expected to reasonable cover all features that WebAssembly support.
@@ -29,13 +31,14 @@ mod wasm_tests {
         der::{DecodePem, Encode},
         Certificate,
     };
+    use crate::time::GetTimestamp;
 
     #[cfg(feature = "verify")]
     #[wasm_bindgen_test]
     fn verifier() {
         use p384::ecdsa::SigningKey;
 
-        let time = include!("../../data/wasm_test_data/created_at.txt");
+        let time = GetTimestamp::new(Box::new(|| include!("../../data/wasm_test_data/created_at.txt")));
 
         let root_cert = Certificate::from_pem(include_bytes!(
             "../../data/wasm_test_data/root/ecdsa_p384_cert.pem"
@@ -61,7 +64,7 @@ mod wasm_tests {
         let doc = api::nsm::AttestationDoc {
             module_id: "".to_string(),
             digest: api::nsm::Digest::SHA384,
-            timestamp: time,
+            timestamp: time.time(),
             pcrs: Pcrs::default().into(),
             certificate: end_cert.to_der().unwrap().into(),
             cabundle: vec![int_cert.to_der().unwrap().into()],

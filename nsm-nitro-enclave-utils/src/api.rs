@@ -1,4 +1,4 @@
-pub use crate::phony::GetTimestamp;
+pub use crate::time::GetTimestamp;
 pub use p384::SecretKey;
 pub use serde_bytes::ByteBuf;
 

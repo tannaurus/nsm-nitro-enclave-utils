@@ -6,12 +6,11 @@ use crate::{
     AttestationDocSignerExt, Driver, Nsm,
 };
 use p384::ecdsa::SigningKey;
+use crate::time::GetTimestamp;
 
 mod pcrs;
 
 pub use pcrs::*;
-mod time;
-pub use time::*;
 
 struct Phony {
     signing_key: SigningKey,

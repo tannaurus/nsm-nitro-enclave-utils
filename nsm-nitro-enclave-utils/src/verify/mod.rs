@@ -7,13 +7,14 @@ use x509_cert::{der::Decode, Certificate};
 
 mod cert;
 use cert::ChainVerifier;
+use crate::time::GetTimestamp;
 
 #[sealed]
 pub trait AttestationDocVerifierExt {
     fn from_cose(
         cose_attestation_doc: &[u8],
         root_cert: &[u8],
-        time: u64,
+        time: GetTimestamp,
     ) -> Result<AttestationDoc, &'static str>;
 }
 
@@ -27,7 +28,7 @@ impl AttestationDocVerifierExt for AttestationDoc {
     fn from_cose(
         cose_attestation_doc: &[u8],
         root_cert: &[u8],
-        time: u64,
+        time: GetTimestamp,
     ) -> Result<AttestationDoc, &'static str> {
         let cose =
             CoseSign1::from_slice(cose_attestation_doc).map_err(|_| "Failed to decode COSE")?;
@@ -73,7 +74,11 @@ impl AttestationDocVerifierExt for AttestationDoc {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(test)]
 mod tests {
+    use crate::time::GetTimestamp;
+
     #[test]
     fn encode_decode() {
         use crate::{
@@ -131,10 +136,7 @@ mod tests {
         AttestationDoc::from_cose(
             &doc,
             &root_cert.to_der().unwrap(),
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_secs(),
+            GetTimestamp::default(),
         )
         .unwrap();
     }
