@@ -114,11 +114,11 @@ struct AttestResponse {
     document: Vec<u8>,
 }
 
-async fn attest(State(app_state): State<AppState>, Path(nonce): Path<String>) -> Response {
+async fn attest(State(app_state): State<AppState>, Path(nonce): Path<ByteBuf>) -> Response {
     let response = app_state.nitro.process_request(NsmRequest::Attestation {
         user_data: None,
         public_key: None,
-        nonce: Some(ByteBuf::from(nonce.as_bytes())),
+        nonce: Some(nonce),
     });
 
     if let NsmResponse::Attestation { document } = response {
