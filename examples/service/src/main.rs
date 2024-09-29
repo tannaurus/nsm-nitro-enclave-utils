@@ -72,7 +72,6 @@ async fn main() {
         .int_cert_pem
         .into_iter()
         .map(|path| {
-            print!("path: {:?}", path);
             let pem = std::fs::read_to_string(&path).unwrap();
             ByteBuf::from(Certificate::from_pem(&pem).unwrap().to_der().unwrap())
         })
