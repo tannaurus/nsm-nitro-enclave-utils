@@ -1,6 +1,6 @@
 # Overview
 
-A simple axum service that uses `nsm-nitro-enclave-utils` to generate attestation documents outside a Nitro Enclave.
+A simple axum server that uses `nsm-nitro-enclave-utils` to generate attestation documents outside a Nitro Enclave.
 
 # Running the service
 
