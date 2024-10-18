@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/examples/client/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/examples/service/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/nsm-nitro-enclave-utils/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/examples/server/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/apps/halcyon-demo/target" />
