@@ -56,7 +56,7 @@ impl std::fmt::Display for ErrorContext {
 
 impl std::error::Error for ErrorContext {}
 
-#[cfg(test)]
+#[cfg(all(test, target_arch = "wasm32"))]
 /// This test suite is expected to reasonable cover all features that WebAssembly support.
 /// See README for instructions for running these tests.
 mod wasm_tests {
