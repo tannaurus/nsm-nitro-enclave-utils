@@ -7,6 +7,8 @@ version = "0.0.1"
 edition = "2021"
 license = "MPL-2.0"
 authors = ["Tanner Gill <contacttannergill@gmail.com>"]
+keywords = ["aws", "nitro", "enclave"]
+categories = ["emulators", "development-tools", "wasm"]
 
 [features]
 default = ["nitro"]
