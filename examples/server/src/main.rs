@@ -79,7 +79,7 @@ async fn main() {
 
     let nitro = NsmBuilder::new();
 
-    // Hit the phony driver when the `dev` feature is enabled
+    // Hit the dev driver when the `dev` feature is enabled
     // You can enable this while working locally, ensuring it's disabled when this service is deployed.
     #[cfg(feature = "dev")]
     let nitro = nitro

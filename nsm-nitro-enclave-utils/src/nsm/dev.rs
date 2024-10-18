@@ -115,7 +115,7 @@ impl DevNitroBuilder {
         Self { pcrs, ..self }
     }
 
-    /// Create an [`Nsm`] where [`Phony`] processes the requests
+    /// Create an [`Nsm`] where [`DevNitro`] processes the requests
     pub fn build(self) -> Nsm {
         Nsm {
             driver: Box::new(DevNitro {
@@ -130,7 +130,7 @@ impl DevNitroBuilder {
 }
 
 impl NsmBuilder {
-    /// Creates a new [`PhonyBuilder`], which supports "bring your own pki"
+    /// Creates a new [`DevNitroBuilder`], which supports "bring your own pki"
     pub fn dev_mode(
         self,
         signing_key: SecretKey,
