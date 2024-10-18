@@ -27,7 +27,7 @@ impl GetTimestamp {
                     .expect("Land before time 🦕")
                     .as_millis(),
             )
-                .expect("This code has exceeded my lifetime")
+            .expect("This code has exceeded my lifetime")
         }))
     }
 

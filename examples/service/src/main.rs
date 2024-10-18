@@ -11,12 +11,12 @@ use nsm_nitro_enclave_utils::{
         nsm::{Request as NsmRequest, Response as NsmResponse},
         ByteBuf,
     },
-    Nsm, NsmBuilder,
+    nsm::{Nsm, NsmBuilder},
 };
 #[cfg(feature = "dev")]
 use nsm_nitro_enclave_utils::{
     api::{GetTimestamp, SecretKey},
-    Pcrs,
+    pcr::Pcrs,
 };
 use serde::Serialize;
 use std::{path::PathBuf, sync::Arc};

@@ -1,9 +1,11 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use nsm_nitro_enclave_utils::api::nsm::AttestationDoc;
-use nsm_nitro_enclave_utils::api::ByteBuf;
-use nsm_nitro_enclave_utils::{AttestationDocVerifierExt, GetTimestamp};
+use nsm_nitro_enclave_utils::{
+    api::{nsm::AttestationDoc, ByteBuf},
+    time::GetTimestamp,
+    verify::AttestationDocVerifierExt,
+};
 use reqwest::StatusCode;
 use serde::Deserialize;
 use x509_cert::der::{DecodePem, Encode};

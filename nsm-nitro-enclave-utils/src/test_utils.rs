@@ -15,7 +15,6 @@ use x509_cert::{
     Certificate,
 };
 
-#[allow(unused)]
 pub(crate) fn build_cert(
     profile: Profile,
     signing_key: SigningKey,
@@ -37,7 +36,6 @@ pub(crate) fn build_cert(
     cert
 }
 
-#[allow(unused)]
 pub(crate) fn generate_key() -> (SigningKey, VerifyingKey) {
     let signing_key = SigningKey::try_from(SecretKey::random(&mut rand::thread_rng())).unwrap();
     let verifying_key = VerifyingKey::from(signing_key.clone());

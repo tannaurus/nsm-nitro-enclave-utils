@@ -9,49 +9,10 @@ use crate::api::nsm::AttestationDoc;
 use crate::time::GetTimestamp;
 use cert::ChainVerifier;
 
-/// Captures errors that can occur during attestation document verification.
-/// `kind` is a high-level categorization of the error that is defined by the library.
-/// `source` is the underlying error that caused the failure. When possible, the source is the error that was returned by the underlying library.
-/// If the error returned from the underlying library does not implement [`std::error::Error`], or the error originated due to this library's own assertions, [`ErrorContext`] is used.
-#[derive(Debug)]
-pub struct VerifierError {
-    kind: VerifierErrorKind,
-    _backtrace: std::backtrace::Backtrace,
-    _source: Box<dyn std::error::Error + Send + Sync>,
-}
-
-impl VerifierError {
-    fn new<E>(kind: VerifierErrorKind, err: E) -> Self
-    where
-        E: std::error::Error + Send + Sync + 'static,
-    {
-        Self {
-            kind,
-            _backtrace: std::backtrace::Backtrace::capture(),
-            _source: Box::new(err),
-        }
-    }
-
-    pub fn kind(&self) -> &VerifierErrorKind {
-        &self.kind
-    }
-}
-
-/// Used by errors to provide additional context if the error returned from the underlying library does not implement [`std::error::Error`],
-/// or the error originated due to this library's own assertions.
-#[derive(Debug, PartialEq, Eq, Clone, Hash, PartialOrd, Ord)]
-struct ErrorContext(String);
-
-impl std::fmt::Display for ErrorContext {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl std::error::Error for ErrorContext {}
+pub type VerifyError = crate::Error<ErrorKind>;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
-pub enum VerifierErrorKind {
+pub enum ErrorKind {
     InvalidEndCertificate,
     InvalidRootCertificate,
     InvalidCose,
@@ -65,7 +26,7 @@ pub trait AttestationDocVerifierExt {
         cose_attestation_doc: &[u8],
         root_cert: &[u8],
         time: GetTimestamp,
-    ) -> Result<AttestationDoc, VerifierError>;
+    ) -> Result<AttestationDoc, VerifyError>;
 }
 
 /// This implementation implements the 4 steps outlined in the AWS Nitro Enclaves ["verify root" documentation](https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html)
@@ -79,23 +40,21 @@ impl AttestationDocVerifierExt for AttestationDoc {
         cose_attestation_doc: &[u8],
         root_cert: &[u8],
         time: GetTimestamp,
-    ) -> Result<AttestationDoc, VerifierError> {
-        let cose = CoseSign1::from_slice(cose_attestation_doc).map_err(|err| {
-            VerifierError::new(
-                VerifierErrorKind::InvalidCose,
-                ErrorContext(format!("Failed to decode COSE: {:?}", err)),
-            )
-        })?;
+    ) -> Result<AttestationDoc, VerifyError> {
+        let cose = CoseSign1::from_slice(cose_attestation_doc)
+            .map_err(|err| VerifyError::new(ErrorKind::InvalidCose, err))?;
 
-        let payload = cose.payload.as_ref().ok_or(VerifierError::new(
-            VerifierErrorKind::InvalidCose,
-            ErrorContext("Missing Cose payload".into()),
+        let payload = cose.payload.as_ref().ok_or(VerifyError::new(
+            ErrorKind::InvalidCose,
+            crate::ErrorContext("Missing Cose payload"),
         ))?;
 
-        let attestation_doc = AttestationDoc::from_binary(payload).map_err(|err| {
-            VerifierError::new(
-                VerifierErrorKind::InvalidAttestationDoc,
-                ErrorContext(format!("Failed to decode attestation doc: {:?}", err)),
+        let attestation_doc = AttestationDoc::from_binary(payload).map_err(|_| {
+            VerifyError::new(
+                ErrorKind::InvalidAttestationDoc,
+                crate::ErrorContext(
+                    "Failed to decode attestation doc. Cbor deserialization failed.",
+                ),
             )
         })?;
 
@@ -110,47 +69,46 @@ impl AttestationDocVerifierExt for AttestationDoc {
         ChainVerifier::new(&root_cert, &intermediate_certs, &end_cert)?.verify(time)?;
 
         let doc_cert = Certificate::from_der(&attestation_doc.certificate)
-            .map_err(|err| VerifierError::new(VerifierErrorKind::InvalidAttestationDoc, err))?;
+            .map_err(|err| VerifyError::new(ErrorKind::InvalidAttestationDoc, err))?;
         let doc_cert_pub_key = doc_cert.tbs_certificate.subject_public_key_info;
 
         doc_cert_pub_key
             .algorithm
             .assert_algorithm_oid(x509_cert::der::oid::db::rfc5912::ID_EC_PUBLIC_KEY)
-            .map_err(|err| VerifierError::new(VerifierErrorKind::InvalidAttestationDoc, err))?;
+            .map_err(|err| VerifyError::new(ErrorKind::InvalidAttestationDoc, err))?;
 
         let verifying_key =
             VerifyingKey::from_sec1_bytes(doc_cert_pub_key.subject_public_key.as_bytes().ok_or(
-                VerifierError::new(
-                    VerifierErrorKind::InvalidAttestationDoc,
-                    ErrorContext("Attestation doc missing subject_public_key".into()),
+                VerifyError::new(
+                    ErrorKind::InvalidAttestationDoc,
+                    crate::ErrorContext("Attestation doc missing subject_public_key".into()),
                 ),
             )?)
-            .map_err(|err| VerifierError::new(VerifierErrorKind::InvalidAttestationDoc, err))?;
+            .map_err(|err| VerifyError::new(ErrorKind::InvalidAttestationDoc, err))?;
 
         cose.verify_signature(&[], |signature, msg| {
             let signature = Signature::try_from(signature)?;
             verifying_key.verify(msg, &signature)
         })
-        .map_err(|err| VerifierError::new(VerifierErrorKind::Verification, err))?;
+        .map_err(|err| VerifyError::new(ErrorKind::Verification, err))?;
 
         Ok(attestation_doc)
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(test)]
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    use x509_cert::{builder::Profile, der::Encode};
+
+    use crate::api::nsm::{AttestationDoc, Digest};
+    use crate::pcr::Pcrs;
+    use crate::sign::AttestationDocSignerExt;
     use crate::time::GetTimestamp;
+    use crate::verify::AttestationDocVerifierExt;
 
     #[test]
-    fn encode_decode() {
-        use crate::{
-            api::nsm::{AttestationDoc, Digest},
-            AttestationDocSignerExt, AttestationDocVerifierExt, Pcrs,
-        };
-        use std::time::{SystemTime, UNIX_EPOCH};
-        use x509_cert::{builder::Profile, der::Encode};
-
+    fn sign_and_verify() {
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
         let (root_key, root_public_key) = crate::test_utils::generate_key();
         let root_cert =

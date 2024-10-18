@@ -1,18 +1,17 @@
+use crate::nsm::{Driver, NsmBuilder};
+use crate::pcr::Pcrs;
+use crate::time::GetTimestamp;
 use crate::{
     api::{
         nsm::{AttestationDoc, ErrorCode, Request, Response},
         ByteBuf, SecretKey,
     },
-    AttestationDocSignerExt, Driver, Nsm,
+    nsm::Nsm,
+    sign::AttestationDocSignerExt,
 };
 use p384::ecdsa::SigningKey;
-use crate::time::GetTimestamp;
 
-mod pcrs;
-
-pub use pcrs::*;
-
-struct Phony {
+struct DevNitro {
     signing_key: SigningKey,
     end_cert: ByteBuf,
     ca_bundle: Vec<ByteBuf>,
@@ -20,7 +19,7 @@ struct Phony {
     get_timestamp: GetTimestamp,
 }
 
-impl Driver for Phony {
+impl Driver for DevNitro {
     fn process_request(&self, request: Request) -> Response {
         match request {
             Request::DescribePCR { index } => self.describe_pcr(index),
@@ -34,13 +33,17 @@ impl Driver for Phony {
     }
 }
 
-impl Phony {
+impl DevNitro {
     fn describe_pcr(&self, index: u16) -> Response {
-        match self.pcrs.checked_get(index.into()) {
-            Ok(pcr) => Response::DescribePCR {
-                lock: true,
-                data: pcr.to_vec(),
-            },
+        let index = usize::from(index);
+        match index.try_into() {
+            Ok(index) => {
+                let pcr = self.pcrs.get(index);
+                Response::DescribePCR {
+                    lock: true,
+                    data: pcr.to_vec(),
+                }
+            }
             Err(_) => Response::Error(ErrorCode::InvalidIndex),
         }
     }
@@ -71,8 +74,8 @@ impl Phony {
     }
 }
 
-/// A builder for [`Phony`]
-pub struct PhonyBuilder {
+/// A builder for [`DevNitro`]
+pub struct DevNitroBuilder {
     signing_key: SigningKey,
     end_cert: ByteBuf,
     ca_bundle: Option<Vec<ByteBuf>>,
@@ -80,7 +83,7 @@ pub struct PhonyBuilder {
     get_timestamp: GetTimestamp,
 }
 
-impl PhonyBuilder {
+impl DevNitroBuilder {
     /// `signing_key`: used to sign the attestation document
     /// `end_cert` a der encoded x509 certificate. Should contain `signing_key`'s public key.
     /// `get_timestamp` must return UTC time when document was created expressed as milliseconds since Unix Epoch
@@ -115,7 +118,7 @@ impl PhonyBuilder {
     /// Create an [`Nsm`] where [`Phony`] processes the requests
     pub fn build(self) -> Nsm {
         Nsm {
-            driver: Box::new(Phony {
+            driver: Box::new(DevNitro {
                 signing_key: self.signing_key,
                 end_cert: self.end_cert,
                 ca_bundle: self.ca_bundle.unwrap_or(Vec::new()),
@@ -123,5 +126,17 @@ impl PhonyBuilder {
                 get_timestamp: self.get_timestamp,
             }),
         }
+    }
+}
+
+impl NsmBuilder {
+    /// Creates a new [`PhonyBuilder`], which supports "bring your own pki"
+    pub fn dev_mode(
+        self,
+        signing_key: SecretKey,
+        end_cert: ByteBuf,
+        get_timestamp: GetTimestamp,
+    ) -> DevNitroBuilder {
+        DevNitroBuilder::new(signing_key, end_cert, get_timestamp)
     }
 }

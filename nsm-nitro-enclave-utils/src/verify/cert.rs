@@ -6,7 +6,7 @@ use webpki::{
     EndEntityCert, KeyUsage,
 };
 
-use super::{VerifierError, VerifierErrorKind};
+use super::{ErrorKind, VerifyError};
 
 #[must_use = "ChainVerifier must be verified"]
 pub(crate) struct ChainVerifier<'a> {
@@ -20,15 +20,15 @@ impl<'a> ChainVerifier<'a> {
         root_cert: &'a CertificateDer,
         int_certs: &'a [&[u8]],
         end_cert: &'a CertificateDer,
-    ) -> Result<Self, VerifierError> {
+    ) -> Result<Self, VerifyError> {
         let end_cert = EndEntityCert::try_from(end_cert)
-            .map_err(|err| VerifierError::new(VerifierErrorKind::InvalidEndCertificate, err))?;
+            .map_err(|err| VerifyError::new(ErrorKind::InvalidEndCertificate, err))?;
         let int_certs = int_certs
             .iter()
             .map(|cert| CertificateDer::from(*cert))
             .collect();
         let root_cert = anchor_from_trusted_cert(root_cert)
-            .map_err(|err| VerifierError::new(VerifierErrorKind::InvalidRootCertificate, err))?;
+            .map_err(|err| VerifyError::new(ErrorKind::InvalidRootCertificate, err))?;
 
         Ok(Self {
             root_cert,
@@ -39,7 +39,7 @@ impl<'a> ChainVerifier<'a> {
 
     /// Verifies the certificate chain
     /// AWS's documentation explicitly requires ["CRL must be disabled when doing the validation"](https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html#chain)
-    pub(crate) fn verify(self, get_time: GetTimestamp) -> Result<(), VerifierError> {
+    pub(crate) fn verify(self, get_time: GetTimestamp) -> Result<(), VerifyError> {
         self.end_cert
             .verify_for_usage(
                 &[webpki::ring::ECDSA_P384_SHA384],
@@ -50,7 +50,7 @@ impl<'a> ChainVerifier<'a> {
                 None,
                 None,
             )
-            .map_err(|err| VerifierError::new(VerifierErrorKind::Verification, err))?;
+            .map_err(|err| VerifyError::new(ErrorKind::Verification, err))?;
 
         Ok(())
     }

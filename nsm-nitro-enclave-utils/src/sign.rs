@@ -3,14 +3,16 @@ use coset::{iana::Algorithm, CborSerializable, CoseSign1Builder, HeaderBuilder};
 use p384::ecdsa::{signature::Signer, Signature, SigningKey};
 use sealed::sealed;
 
+pub type SignCoseError = crate::Error<()>;
+
 #[sealed]
 pub trait AttestationDocSignerExt {
-    fn sign(&self, signing_key: SigningKey) -> Result<Vec<u8>, &'static str>;
+    fn sign(&self, signing_key: SigningKey) -> Result<Vec<u8>, SignCoseError>;
 }
 
 #[sealed]
 impl AttestationDocSignerExt for AttestationDoc {
-    fn sign(&self, signing_key: SigningKey) -> Result<Vec<u8>, &'static str> {
+    fn sign(&self, signing_key: SigningKey) -> Result<Vec<u8>, SignCoseError> {
         let headers = HeaderBuilder::new().algorithm(Algorithm::ES384).build();
 
         let payload = self.to_binary();
@@ -24,6 +26,6 @@ impl AttestationDocSignerExt for AttestationDoc {
             })
             .build();
 
-        cose.to_vec().map_err(|_| "Failed to serialize COSE")
+        cose.to_vec().map_err(|err| SignCoseError::new((), err))
     }
 }
