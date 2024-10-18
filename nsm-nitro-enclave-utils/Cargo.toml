@@ -16,7 +16,6 @@ verify = ["dep:rustls-webpki"]
 nitro = ["aws-nitro-enclaves-nsm-api/nix"]
 
 [dependencies]
-serde_cbor = "0.11"
 serde_bytes = "0.11"
 hex = "0.4"
 coset = { version = "0.3", features = ["std"] }
@@ -24,7 +23,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 x509-cert = { version = "0.2", features = ["builder"] }
 p384 = { version = "0.13" }
-sealed = "0.5"
+sealed = "0.6"
 aws-nitro-enclaves-nsm-api = { version = "0.4.0", default-features = false }
 sha2 = { version = "0.10", optional = true }
 rand = { version = "0.8", optional = true }
