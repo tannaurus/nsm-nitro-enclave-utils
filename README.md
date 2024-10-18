@@ -25,8 +25,8 @@ The api of `nsm-nitro-enclave-utils` is intentionally designed to mimic `aws-nit
 #### Missing NSM requests
 When `NsmBuilder` has been configured in `dev_mode`, only the `DescribePCR` and `Attestation` requests will succeed. The other requests: `ExtendPCR`, `LockPCR`, `LockPCRs`, `DescribeNSM`, and `GetRandom`, are currently unimplemented. Attempts to make these requests while in `dev_mode` will result in a `Response::Error(ErrorCode::InvalidOperation)`. Requests made while `dev_mode` is _not_ enabled will still succeed, provided you are making them inside a Nitro Enclave.
 
-#### Comprehensive NSM errors
-There are a number of `ErrorCode`s returned from `aws-nitro-enclaves-nsm-api` that are currently unaccounted for. Some of them, like `ReadOnlyIndex` and `Success`, are missing due to their associated feature remaining (currently) unsupported. Others, like `InvalidIndex` and `InputTooLarge` are simply due to missing checks in the existing implementation.
+#### Comprehensive NSM errors in `dev_mode`
+There are a number of `ErrorCode`s returned from `aws-nitro-enclaves-nsm-api` that are currently unaccounted for when using this in `dev_mode`, configured via `NsmBuilder`. Some of them, like `ReadOnlyIndex` and `Success`, are missing due to their associated feature remaining (currently) unsupported. Others, like `InvalidIndex` and `InputTooLarge` are simply due to missing checks in the existing implementation.
 
 ## Setup
 If you're already using `aws-nitro-enclaves-nsm-api`, you'll need to swap out `aws_nitro_enclaves_nsm_api::driver::nsm_init` with `NsmBuilder`, which allows you to swap our your pki and specify the PCRs of your attestation document.
