@@ -6,17 +6,14 @@ use axum::{
     Router,
 };
 use clap::Parser;
+#[cfg(feature = "dev")]
+use nsm_nitro_enclave_utils::{api::SecretKey, pcr::Pcrs};
 use nsm_nitro_enclave_utils::{
     api::{
         nsm::{Request as NsmRequest, Response as NsmResponse},
         ByteBuf,
     },
     nsm::{Nsm, NsmBuilder},
-};
-#[cfg(feature = "dev")]
-use nsm_nitro_enclave_utils::{
-    api::{GetTimestamp, SecretKey},
-    pcr::Pcrs,
 };
 use serde::Serialize;
 use std::{path::PathBuf, sync::Arc};
@@ -83,7 +80,7 @@ async fn main() {
     // You can enable this while working locally, ensuring it's disabled when this service is deployed.
     #[cfg(feature = "dev")]
     let nitro = nitro
-        .dev_mode(signing_key, end_cert, GetTimestamp::default())
+        .dev_mode(signing_key, end_cert)
         // Using `Pcrs::zeros` to get attestation documents similar to how the Nsm module will return all zeros in "debug mode"
         // https://docs.aws.amazon.com/enclaves/latest/user/getting-started.html#run
         // `Pcrs` can be generated in another ways too, but some of them require extra feature flags not enabled in this binary.

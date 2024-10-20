@@ -2,18 +2,14 @@
 
 pub mod api;
 
-#[cfg(feature = "verify")]
-pub mod verify;
-
-pub mod sign;
-
 pub mod nsm;
 
 pub mod time;
 
 pub mod pcr;
-#[cfg(all(test, not(target_arch = "wasm32")))]
-mod test_utils;
+
+#[cfg(feature = "verify")]
+pub mod verify;
 
 #[derive(Debug)]
 /// Captures errors that can occur during attestation document verification.
@@ -60,27 +56,24 @@ impl std::error::Error for ErrorContext {}
 /// This test suite is expected to reasonable cover all features that WebAssembly support.
 /// See README for instructions for running these tests.
 mod wasm_tests {
-    use crate::api;
-    use crate::nsm::NsmBuilder;
-    use crate::time::GetTimestamp;
-
-    use std::mem;
     use wasm_bindgen_test::*;
-    use x509_cert::{
-        der::{DecodePem, Encode},
-        Certificate,
-    };
 
-    #[cfg(feature = "verify")]
+    #[cfg(all(feature = "verify", feature = "pki"))]
     #[wasm_bindgen_test]
     fn sign_and_verify() {
+        use p384::ecdsa::SigningKey;
+        use x509_cert::{
+            der::{DecodePem, Encode},
+            Certificate,
+        };
+
+        use crate::api;
+        use crate::nsm::dev::sign::AttestationDocSignerExt;
         use crate::pcr::Pcrs;
-        use crate::sign::AttestationDocSignerExt;
+        use crate::time::Time;
         use crate::verify::AttestationDocVerifierExt;
 
-        use p384::ecdsa::SigningKey;
-
-        let time = GetTimestamp::new(Box::new(|| include!("../../test_data/created_at.txt")));
+        let time = Time::new(Box::new(|| include!("../../test_data/created_at.txt")));
 
         let root_cert =
             Certificate::from_pem(include_bytes!("../../test_data/root/ecdsa_p384_cert.pem"))
@@ -114,38 +107,6 @@ mod wasm_tests {
         let doc = doc.sign(signing_key).unwrap();
 
         api::nsm::AttestationDoc::from_cose(&doc, &root_cert, time).unwrap();
-    }
-
-    #[wasm_bindgen_test]
-    fn dev_nsm() {
-        let secret_key =
-            p384::SecretKey::from_sec1_pem(include_str!("../../test_data/end/ecdsa_p384_key.pem"))
-                .unwrap();
-        let end_cert =
-            Certificate::from_pem(include_bytes!("../../test_data/end/ecdsa_p384_cert.pem"))
-                .unwrap();
-
-        let time = include!("../../test_data/created_at.txt");
-        let nsm = NsmBuilder::new()
-            .dev_mode(
-                secret_key,
-                end_cert.to_der().unwrap().into(),
-                GetTimestamp::new(Box::new(move || time)),
-            )
-            .build();
-
-        let response = nsm.process_request(api::nsm::Request::Attestation {
-            user_data: None,
-            nonce: None,
-            public_key: None,
-        });
-
-        assert_eq!(
-            mem::discriminant(&response),
-            mem::discriminant(&api::nsm::Response::Attestation {
-                document: Vec::new()
-            })
-        );
     }
 
     #[cfg(feature = "seed")]

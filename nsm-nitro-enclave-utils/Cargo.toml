@@ -14,8 +14,9 @@ categories = ["emulators", "development-tools", "wasm"]
 default = ["nitro"]
 rand = ["dep:rand"]
 seed = ["dep:sha2"]
-verify = ["dep:rustls-webpki"]
+verify = ["dep:rustls-webpki", "x509-cert", "p384"]
 nitro = ["aws-nitro-enclaves-nsm-api/nix"]
+pki = ["p384"]
 
 [dependencies]
 serde_bytes = "0.11"
@@ -23,13 +24,13 @@ hex = "0.4"
 coset = { version = "0.3", features = ["std"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-x509-cert = { version = "0.2", features = ["builder"] }
-p384 = { version = "0.13" }
 sealed = "0.6"
 aws-nitro-enclaves-nsm-api = { version = "0.4.0", default-features = false }
 sha2 = { version = "0.10", optional = true }
 rand = { version = "0.8", optional = true }
 rustls-webpki = { version = "0.102", features = ["ring"], optional = true }
+x509-cert = { version = "0.2", features = ["builder"], optional = true }
+p384 = { version = "0.13", optional = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
@@ -38,3 +39,5 @@ ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
 wasm-bindgen-test = "0.3"
 rand = "0.8"
 sha2 = { version = "0.10", features = ["oid"] }
+p384 = { version = "0.13" }
+nsm-nitro-enclave-utils-keygen = { path = "../nsm-nitro-enclave-utils-keygen" }

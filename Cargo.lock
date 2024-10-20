@@ -995,6 +995,7 @@ dependencies = [
  "aws-nitro-enclaves-nsm-api",
  "coset",
  "hex",
+ "nsm-nitro-enclave-utils-keygen",
  "p384",
  "rand",
  "ring",
@@ -1005,6 +1006,16 @@ dependencies = [
  "serde_json",
  "sha2",
  "wasm-bindgen-test",
+ "x509-cert",
+]
+
+[[package]]
+name = "nsm-nitro-enclave-utils-keygen"
+version = "0.1.0"
+dependencies = [
+ "p384",
+ "rand",
+ "sha2",
  "x509-cert",
 ]
 

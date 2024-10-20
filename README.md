@@ -1,7 +1,7 @@
 # Overview
 `nsm-nitro-enclave-utils` is designed to make the lives of teams building with AWS Nitro Enclaves a bit easier.
 It's primary purpose is to support "bring your own PKI" as an option for attestation documents in development environments, allowing you to swap out the root of trust in clients that are verifying the attestation document's certificate chain.
-With the root of trust swapped, your enclave services can dynamically generate attestation documents outside a Nitro Enclave. Clients can have _their_ root of trust swapped to successfully perform attestation against the attestation documents signed by your certificate.
+With the root of trust swapped, your enclave services can dynamically generate self-signed attestation documents outside a Nitro Enclave, inside your local development environment. Clients can have _their_ root of trust swapped to successfully perform attestation against your self-signed attestation documents.
 
 Replacing the root of trust inherently destroys the security guarantees of AWS Nitro Enclaves: it is up to your team to ensure `nsm-nitro-enclave-utils` is not misconfigured outside a development environment.
 
@@ -13,11 +13,11 @@ The api of `nsm-nitro-enclave-utils` is intentionally designed to mimic `aws-nit
 
 | Name                   |                                                                                              Description                                                                                              | Wasm Support | Cargo feature |
 |:-----------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------:|:-------------:|
-| Signing                |                                                                         Sign attestation documents with "Bring your own PKI"                                                                          |      ✅       |     None      |
 | Verifying              |                                                                        Verify self signed and AWS signed attestation documents                                                                        |      ✅       |   `verify`    |
 | Seeded PCRs            |                                                         Use any collection of strings to deterministically seed your PCRs with `Pcrs::seed`.                                                          |      ✅       |    `seed`     |
 | Random PCRs            |                                              Don't care about the value of your PCRs, but don't want them to be all zeros? `Pcrs::rand` has you covered.                                              |      ✅       |    `rand`     |
-| Authentic NSM requests | Due to limitations with `aws-nitro-enclaves-nsm-api`, requests to an authentic Nitro Secure Module don't have WebAssembly support. Disabling the `nitro` feature is required to support wasm targets. |      ❌        |    `nitro`    |
+| Signing                |                                                                         Sign attestation documents with "Bring your own PKI"                                                                          |      ❌       |     `pki`     |
+| Authentic NSM requests | Due to limitations with `aws-nitro-enclaves-nsm-api`, requests to an authentic Nitro Secure Module don't have WebAssembly support. Disabling the `nitro` feature is required to support wasm targets. |      ❌       |    `nitro`    |
 
 
 ### Not implemented
@@ -29,7 +29,7 @@ When `NsmBuilder` has been configured in `dev_mode`, only the `DescribePCR` and 
 There are a number of `ErrorCode`s returned from `aws-nitro-enclaves-nsm-api` that are currently unaccounted for when using this in `dev_mode`, configured via `NsmBuilder`. Some of them, like `ReadOnlyIndex` and `Success`, are missing due to their associated feature remaining (currently) unsupported. Others, like `InvalidIndex` and `InputTooLarge` are simply due to missing checks in the existing implementation.
 
 ## Setup
-If you're already using `aws-nitro-enclaves-nsm-api`, you'll need to swap out `aws_nitro_enclaves_nsm_api::driver::nsm_init` with `NsmBuilder`, which allows you to swap our your pki and specify the PCRs of your attestation document.
+If you're already using `aws-nitro-enclaves-nsm-api`, you'll need to swap out `aws_nitro_enclaves_nsm_api::driver::nsm_init` with `NsmBuilder`, which allows you to swap out your pki to self-sign attestation documents, and specify the PCRs that are included in those attestation documents.
 
 ### Root of trust
 
@@ -52,16 +52,17 @@ When you "bring your own PKI", you can tell `NsmBuilder` to use _your_ signing k
 
 Found in the `/examples` directory.
 
-| Name                   |                                                                                              Description
-|:-----------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------:|
-| Server                 | Interacts with the Nitro Secure Module, including the nonce provided in the request body in the returned attestation document.                      |
-| Client                 | Makes a request to the Server example and verifies the attestation document.                                                                        |
+| Name   |                                                          Description                                                           |
+|:-------|:------------------------------------------------------------------------------------------------------------------------------:|
+| Server | Interacts with the Nitro Secure Module, including the nonce provided in the request body in the returned attestation document. |
+| Client |                          Makes a request to the Server example and verifies the attestation document.                          |
 
 
-## Wasm Compatability
+## Wasm Compatibility
 
-`nsm-nitro-enclave-utils` provides WebAssembly support by disabling the `nitro` feature flag. When `nitro` is disabled, you can still sign your own attestation documents, and verify any attestation document (including authentic ones!), but you cannot generate authentic documents due to a lack of wasm support in `aws-nitro-enclaves-nsm-api`.
+`nsm-nitro-enclave-utils` provides WebAssembly support by disabling the `nitro`. When `nitro` is disabled, you can still verify any attestation documents (including authentic and self-signed!), but you cannot generate documents due to a lack of wasm support in `aws-nitro-enclaves-nsm-api`.
+The `pki` feature flag won't cause the build to fail, but the functionality it provides is not Wasm compatible. The `pki` feature flag retains wasm compilation support to generate test data for the wasm test suite.
 
 ### Test coverage
 
-There is a `wasm-pack` test harness in place to ensure features remain wasm compatible. This can be run with the following command: `wasm-pack test --node --no-default-features --features seed,rand,verify`. The test data is intentionally not committed but can be regenerated with `scripts/create_wasm_test_data.sh`
+There is a `wasm-pack` test harness in place to ensure features remain wasm compatible. This can be run with the following command: `wasm-pack test --node --no-default-features --features seed,rand,verify`.

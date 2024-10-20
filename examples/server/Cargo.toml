@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-dev = []
+dev = ["nsm-nitro-enclave-utils/pki"]
 
 [dependencies]
 nsm-nitro-enclave-utils = { path = "../../nsm-nitro-enclave-utils" }

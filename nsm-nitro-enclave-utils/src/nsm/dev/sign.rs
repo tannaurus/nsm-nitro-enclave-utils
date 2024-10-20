@@ -6,7 +6,7 @@ use sealed::sealed;
 pub type SignCoseError = crate::Error<()>;
 
 #[sealed]
-pub trait AttestationDocSignerExt {
+pub(crate) trait AttestationDocSignerExt {
     fn sign(&self, signing_key: SigningKey) -> Result<Vec<u8>, SignCoseError>;
 }
 

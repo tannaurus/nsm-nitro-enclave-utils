@@ -1,0 +1,10 @@
+[package]
+name = "nsm-nitro-enclave-utils-keygen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+x509-cert = { version = "0.2", features = ["builder"] }
+p384 = { version = "0.13" }
+rand = { version = "0.8" }
+sha2 = { version = "0.10", features = ["oid"] }

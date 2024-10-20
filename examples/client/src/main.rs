@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::Parser;
 use nsm_nitro_enclave_utils::{
     api::{nsm::AttestationDoc, ByteBuf},
-    time::GetTimestamp,
+    time::Time,
     verify::AttestationDocVerifierExt,
 };
 use reqwest::StatusCode;
@@ -48,8 +48,7 @@ async fn main() {
     let response_body = response.text().await.unwrap();
     let response: AttestResponse = serde_json::from_str(response_body.as_ref()).unwrap();
 
-    let doc =
-        AttestationDoc::from_cose(&response.document, &root_cert, GetTimestamp::default()).unwrap();
+    let doc = AttestationDoc::from_cose(&response.document, &root_cert, Time::default()).unwrap();
 
     // Ensure our nonce made it into our document and convert to a string so we can compare it to our hex string
     let Some(doc_nonce) = doc

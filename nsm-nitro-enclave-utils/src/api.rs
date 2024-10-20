@@ -1,5 +1,4 @@
-pub use crate::time::GetTimestamp;
-pub use p384::SecretKey;
+pub use crate::time::Time;
 pub use serde_bytes::ByteBuf;
 
 pub mod nsm {
@@ -7,3 +6,6 @@ pub mod nsm {
         AttestationDoc, Digest, ErrorCode, Request, Response,
     };
 }
+
+#[cfg(any(feature = "pki"))]
+pub use p384::SecretKey;

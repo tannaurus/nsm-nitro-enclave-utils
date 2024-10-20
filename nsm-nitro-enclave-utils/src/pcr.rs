@@ -1,9 +1,19 @@
+//! Contains a collection of utilities for working with [Platform Configuration Registers (PCRs)](https://docs.aws.amazon.com/enclaves/latest/user/set-up-attestation.html#where).
+//! The primary goal here is to achieve stronger type safety when working with PCRs, as well as provide abstractions to generate [`Pcrs`] that you can use when self-signing your own attestation documents.
+//!
+//! [`Pcr`] wraps a single Platform Configuration Register, allowing for stronger type safety across your application.
+//! [`Pcrs`] wraps all 6 Platform Configuration Registers returned by the Nitro Secure Module. Each can be infallibly accessed via [`Pcrs::get`].
+//! [`Pcrs`] also provides several methods that allow you to initial a collection of Platform Configuration Registers when self-signing attestation documents, some of which require additional feature flags.
+
 use crate::ErrorContext;
 use serde_bytes::ByteBuf;
 use std::collections::BTreeMap;
 use std::ops::Deref;
 
+/// A [`Pcr`] failed to pass length checks.
 pub type PcrLengthError = crate::Error<()>;
+
+/// [`Pcrs`] included an [invalid index](https://docs.aws.amazon.com/enclaves/latest/user/set-up-attestation.html#where)
 pub type PcrIndexError = crate::Error<()>;
 
 /// The Nitro Secure Module returns PCRs 0 through 8, with some missing.
@@ -17,8 +27,8 @@ pub(crate) const PCR_INDEXES: [PcrIndex; 6] = [
     PcrIndex::Eight,
 ];
 
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
 /// An enum that corresponds to the valid PCR indexes. Used to ensure PCR related operations that are infallible can remain infallible.
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub enum PcrIndex {
     Zero,
     One,

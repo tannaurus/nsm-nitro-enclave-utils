@@ -1,22 +1,22 @@
+use crate::nsm::dev::sign::AttestationDocSignerExt;
 use crate::nsm::{Driver, NsmBuilder};
 use crate::pcr::Pcrs;
-use crate::time::GetTimestamp;
+use crate::time::Time;
 use crate::{
     api::{
         nsm::{AttestationDoc, ErrorCode, Request, Response},
         ByteBuf, SecretKey,
     },
     nsm::Nsm,
-    sign::AttestationDocSignerExt,
 };
 use p384::ecdsa::SigningKey;
 
 struct DevNitro {
+    ca_bundle: Vec<ByteBuf>,
     signing_key: SigningKey,
     end_cert: ByteBuf,
-    ca_bundle: Vec<ByteBuf>,
     pcrs: Pcrs,
-    get_timestamp: GetTimestamp,
+    get_timestamp: Time,
 }
 
 impl Driver for DevNitro {
@@ -74,24 +74,20 @@ impl DevNitro {
     }
 }
 
-/// A builder for [`DevNitro`]
+/// A builder for [`crate::nsm::dev::DevNitro`]
 pub struct DevNitroBuilder {
     signing_key: SigningKey,
     end_cert: ByteBuf,
     ca_bundle: Option<Vec<ByteBuf>>,
     pcrs: Pcrs,
-    get_timestamp: GetTimestamp,
+    get_timestamp: Time,
 }
 
 impl DevNitroBuilder {
     /// `signing_key`: used to sign the attestation document
     /// `end_cert` a der encoded x509 certificate. Should contain `signing_key`'s public key.
     /// `get_timestamp` must return UTC time when document was created expressed as milliseconds since Unix Epoch
-    pub(crate) fn new(
-        signing_key: SecretKey,
-        end_cert: ByteBuf,
-        get_timestamp: GetTimestamp,
-    ) -> Self {
+    pub(crate) fn new(signing_key: SecretKey, end_cert: ByteBuf, get_timestamp: Time) -> Self {
         Self {
             signing_key: signing_key.into(),
             end_cert,
@@ -115,7 +111,7 @@ impl DevNitroBuilder {
         Self { pcrs, ..self }
     }
 
-    /// Create an [`Nsm`] where [`DevNitro`] processes the requests
+    /// Create an [`Nsm`] where [`crate::nsm::dev::DevNitro`] processes the requests
     pub fn build(self) -> Nsm {
         Nsm {
             driver: Box::new(DevNitro {
@@ -130,13 +126,9 @@ impl DevNitroBuilder {
 }
 
 impl NsmBuilder {
-    /// Creates a new [`DevNitroBuilder`], which supports "bring your own pki"
-    pub fn dev_mode(
-        self,
-        signing_key: SecretKey,
-        end_cert: ByteBuf,
-        get_timestamp: GetTimestamp,
-    ) -> DevNitroBuilder {
-        DevNitroBuilder::new(signing_key, end_cert, get_timestamp)
+    /// Creates a new [`crate::nsm::dev::DevNitroBuilder`], which supports "bring your own pki"
+    /// The provided `doc_signing_key` should correspond to the public key of the `end_cert`
+    pub fn dev_mode(self, doc_signing_key: SecretKey, end_cert: ByteBuf) -> DevNitroBuilder {
+        DevNitroBuilder::new(doc_signing_key, end_cert, Time::system_time())
     }
 }

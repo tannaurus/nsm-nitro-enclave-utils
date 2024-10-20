@@ -1,4 +1,4 @@
 [workspace]
-members = ["examples/*", "nsm-nitro-enclave-utils"]
+members = ["examples/*", "nsm-nitro-enclave-utils-keygen", "nsm-nitro-enclave-utils"]
 
 resolver = "2"
