@@ -8,17 +8,15 @@ use nsm_nitro_enclave_utils::{
 };
 use reqwest::StatusCode;
 use serde::Deserialize;
-use x509_cert::der::{DecodePem, Encode};
-use x509_cert::Certificate;
 
 #[derive(Parser, Debug)]
 struct Args {
     #[arg(
         long,
         allow_hyphen_values = true,
-        default_value = "../test_data/root/ecdsa_p384_cert.pem"
+        default_value = "./test_data/root-certificate.der"
     )]
-    root_cert_pem: PathBuf,
+    root_cert: PathBuf,
 }
 
 #[derive(Deserialize)]
@@ -29,10 +27,7 @@ struct AttestResponse {
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
-    let root_cert = {
-        let pem = std::fs::read_to_string(&args.root_cert_pem).unwrap();
-        Certificate::from_pem(pem).unwrap().to_der().unwrap()
-    };
+    let root_cert = std::fs::read(&args.root_cert).unwrap();
 
     let nonce = hex::encode(ByteBuf::from(&[0u8; 32]).as_ref());
 

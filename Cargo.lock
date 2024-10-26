@@ -1013,8 +1013,12 @@ dependencies = [
 name = "nsm-nitro-enclave-utils-keygen"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "p384",
  "rand",
+ "serde",
+ "serde_bytes",
+ "serde_json",
  "sha2",
  "x509-cert",
 ]

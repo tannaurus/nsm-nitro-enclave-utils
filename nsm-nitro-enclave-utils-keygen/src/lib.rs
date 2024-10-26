@@ -1,5 +1,7 @@
 //! A small collection of utilities used to generated [`NsmCertChain`], which is used by [nsm-nitro-enclave-utils](https://crates.io/crates/nsm-nitro-enclave-utils) to self-sign attestation documents in local development environments.
 
+pub mod encode;
+
 use p384::{
     ecdsa::{DerSignature, SigningKey, VerifyingKey},
     SecretKey,
@@ -11,12 +13,15 @@ use x509_cert::{
     serial_number::SerialNumber,
     spki::SubjectPublicKeyInfo,
     time::Validity,
+};
+
+pub use x509_cert::{
+    der::{Decode as DerDecodeExt, Encode as DerEncodeExt, EncodePem as PemEncodeExt},
     Certificate,
 };
 
-pub use x509_cert::der::Encode as DerEncode;
-
 /// A bundle that comprises every certificate (and an end signing key) that is used by [nsm-nitro-enclave-utils](https://crates.io/crates/nsm-nitro-enclave-utils) to self-sign attestation documents in local development environments.
+#[derive(Clone)]
 pub struct NsmCertChain {
     pub root: Certificate,
     pub int: Certificate,
@@ -24,6 +29,7 @@ pub struct NsmCertChain {
 }
 
 /// Contains the end certificate and its associated signing key
+#[derive(Clone)]
 pub struct EndCertificateSigner {
     pub cert: Certificate,
     pub signing_key: SigningKey,

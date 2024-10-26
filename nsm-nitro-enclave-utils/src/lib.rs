@@ -61,11 +61,7 @@ mod wasm_tests {
     #[cfg(all(feature = "verify", feature = "pki"))]
     #[wasm_bindgen_test]
     fn sign_and_verify() {
-        use p384::ecdsa::SigningKey;
-        use x509_cert::{
-            der::{DecodePem, Encode},
-            Certificate,
-        };
+        use p384::{ecdsa::SigningKey, pkcs8::DecodePrivateKey};
 
         use crate::api;
         use crate::nsm::dev::sign::AttestationDocSignerExt;
@@ -75,20 +71,12 @@ mod wasm_tests {
 
         let time = Time::new(Box::new(|| include!("../../test_data/created_at.txt")));
 
-        let root_cert =
-            Certificate::from_pem(include_bytes!("../../test_data/root/ecdsa_p384_cert.pem"))
-                .unwrap()
-                .to_der()
-                .unwrap();
-        let int_cert =
-            Certificate::from_pem(include_bytes!("../../test_data/int/ecdsa_p384_cert.pem"))
-                .unwrap();
-        let end_cert =
-            Certificate::from_pem(include_bytes!("../../test_data/end/ecdsa_p384_cert.pem"))
-                .unwrap();
+        let root_cert = include_bytes!("../../test_data/root-certificate.der");
+        let int_cert = include_bytes!("../../test_data/int-certificate.der");
+        let end_cert = include_bytes!("../../test_data/end-certificate.der");
 
         let signing_key =
-            p384::SecretKey::from_sec1_pem(include_str!("../../test_data/end/ecdsa_p384_key.pem"))
+            p384::SecretKey::from_pkcs8_der(include_bytes!("../../test_data/end-signing-key.der"))
                 .unwrap();
         let signing_key: SigningKey = signing_key.into();
 
@@ -97,8 +85,8 @@ mod wasm_tests {
             digest: api::nsm::Digest::SHA384,
             timestamp: time.time(),
             pcrs: Pcrs::default().into(),
-            certificate: end_cert.to_der().unwrap().into(),
-            cabundle: vec![int_cert.to_der().unwrap().into()],
+            certificate: end_cert.to_vec().into(),
+            cabundle: vec![int_cert.to_vec().into()],
             public_key: None,
             user_data: None,
             nonce: None,
@@ -106,7 +94,7 @@ mod wasm_tests {
 
         let doc = doc.sign(signing_key).unwrap();
 
-        api::nsm::AttestationDoc::from_cose(&doc, &root_cert, time).unwrap();
+        api::nsm::AttestationDoc::from_cose(&doc, root_cert, time).unwrap();
     }
 
     #[cfg(feature = "seed")]

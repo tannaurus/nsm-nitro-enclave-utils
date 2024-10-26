@@ -8,4 +8,4 @@ pub mod nsm {
 }
 
 #[cfg(any(feature = "pki"))]
-pub use p384::SecretKey;
+pub use p384::{pkcs8::DecodePrivateKey, SecretKey};

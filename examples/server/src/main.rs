@@ -5,9 +5,6 @@ use axum::{
     routing::get,
     Router,
 };
-use clap::Parser;
-#[cfg(feature = "dev")]
-use nsm_nitro_enclave_utils::{api::SecretKey, pcr::Pcrs};
 use nsm_nitro_enclave_utils::{
     api::{
         nsm::{Request as NsmRequest, Response as NsmResponse},
@@ -15,33 +12,35 @@ use nsm_nitro_enclave_utils::{
     },
     nsm::{Nsm, NsmBuilder},
 };
+#[cfg(feature = "dev")]
+use nsm_nitro_enclave_utils::{
+    api::{DecodePrivateKey, SecretKey},
+    pcr::Pcrs,
+};
 use serde::Serialize;
-use std::{path::PathBuf, sync::Arc};
-#[cfg(feature = "dev")]
-use x509_cert::der::{DecodePem, Encode};
-#[cfg(feature = "dev")]
-use x509_cert::Certificate;
+use std::sync::Arc;
 
-#[derive(Parser, Debug)]
+#[cfg(feature = "dev")]
+#[derive(clap::Parser, Debug)]
 struct Args {
     #[arg(
         long,
         allow_hyphen_values = true,
-        default_value = "../test_data/end/ecdsa_p384_key.pem"
+        default_value = "./test_data/end-signing-key.der"
     )]
-    signing_key_pem: PathBuf,
+    signing_key: std::path::PathBuf,
     #[arg(
         long,
         allow_hyphen_values = true,
-        default_value = "../test_data/end/ecdsa_p384_cert.pem"
+        default_value = "./test_data/end-certificate.der"
     )]
-    end_cert_pem: PathBuf,
+    end_cert: std::path::PathBuf,
     #[arg(
         long,
         allow_hyphen_values = true,
-        default_value = "../test_data/int/ecdsa_p384_cert.pem"
+        default_value = "./test_data/int-certificate.der"
     )]
-    int_cert_pem: Vec<PathBuf>,
+    int_cert: Vec<std::path::PathBuf>,
 }
 
 #[derive(Clone)]
@@ -51,41 +50,42 @@ struct AppState {
 
 #[tokio::main]
 async fn main() {
-    #[cfg(feature = "dev")]
-    let args = Args::parse();
-    #[cfg(feature = "dev")]
-    let signing_key = {
-        let pem = std::fs::read_to_string(&args.signing_key_pem).unwrap();
-        SecretKey::from_sec1_pem(&pem).unwrap()
-    };
-    #[cfg(feature = "dev")]
-    let end_cert = {
-        let pem = std::fs::read_to_string(&args.end_cert_pem).unwrap();
-        ByteBuf::from(Certificate::from_pem(&pem).unwrap().to_der().unwrap())
-    };
-
-    #[cfg(feature = "dev")]
-    let int_certs = args
-        .int_cert_pem
-        .into_iter()
-        .map(|path| {
-            let pem = std::fs::read_to_string(&path).unwrap();
-            ByteBuf::from(Certificate::from_pem(&pem).unwrap().to_der().unwrap())
-        })
-        .collect::<Vec<ByteBuf>>();
-
     let nitro = NsmBuilder::new();
 
     // Hit the dev driver when the `dev` feature is enabled
     // You can enable this while working locally, ensuring it's disabled when this service is deployed.
     #[cfg(feature = "dev")]
-    let nitro = nitro
-        .dev_mode(signing_key, end_cert)
-        // Using `Pcrs::zeros` to get attestation documents similar to how the Nsm module will return all zeros in "debug mode"
-        // https://docs.aws.amazon.com/enclaves/latest/user/getting-started.html#run
-        // `Pcrs` can be generated in another ways too, but some of them require extra feature flags not enabled in this binary.
-        .pcrs(Pcrs::zeros())
-        .ca_bundle(int_certs);
+    let nitro = {
+        use clap::Parser;
+        let args = Args::parse();
+
+        let int_certs = args
+            .int_cert
+            .into_iter()
+            .map(|path| {
+                let der = std::fs::read(&path).unwrap();
+                ByteBuf::from(der)
+            })
+            .collect::<Vec<ByteBuf>>();
+
+        let end_cert = {
+            let der = std::fs::read(&args.end_cert).unwrap();
+            ByteBuf::from(der)
+        };
+
+        let signing_key = {
+            let der = std::fs::read(&args.signing_key).unwrap();
+            SecretKey::from_pkcs8_der(&der).unwrap()
+        };
+
+        nitro
+            .dev_mode(signing_key, end_cert)
+            // Using `Pcrs::zeros` to get attestation documents similar to how the Nsm module will return all zeros in "debug mode"
+            // https://docs.aws.amazon.com/enclaves/latest/user/getting-started.html#run
+            // `Pcrs` can be generated in another ways too, but some of them require extra feature flags not enabled in this binary.
+            .pcrs(Pcrs::zeros())
+            .ca_bundle(int_certs)
+    };
 
     let nitro = nitro.build();
 
