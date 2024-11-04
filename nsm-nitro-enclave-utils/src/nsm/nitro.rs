@@ -1,7 +1,7 @@
-use crate::nsm::{Driver, Nsm, NsmBuilder};
+use crate::nsm::Driver;
 use aws_nitro_enclaves_nsm_api::api::{Request, Response};
 
-struct Nitro(i32);
+pub struct Nitro(i32);
 
 impl Driver for Nitro {
     fn process_request(&self, request: Request) -> Response {
@@ -15,18 +15,8 @@ impl Drop for Nitro {
     }
 }
 
-impl Nsm {
-    /// Create a new [`Nsm`] which will attempt to interact with the Nitro Secure Module
+impl Nitro {
     pub fn init() -> Self {
-        Self {
-            driver: Box::new(Nitro(aws_nitro_enclaves_nsm_api::driver::nsm_init())),
-        }
-    }
-}
-
-impl NsmBuilder {
-    /// Creates a driver for authentic Nitro Secure Modules
-    pub fn build(self) -> Nsm {
-        Nsm::init()
+        Self(aws_nitro_enclaves_nsm_api::driver::nsm_init())
     }
 }

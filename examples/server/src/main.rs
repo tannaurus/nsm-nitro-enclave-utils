@@ -13,7 +13,7 @@ use nsm_nitro_enclave_utils::{
         nsm::{Request as NsmRequest, Response as NsmResponse},
         ByteBuf,
     },
-    nsm::{Nsm, NsmBuilder},
+    nsm::{self, Driver},
 };
 use serde::Serialize;
 use std::{path::PathBuf, sync::Arc};
@@ -46,7 +46,7 @@ struct Args {
 
 #[derive(Clone)]
 struct AppState {
-    nitro: Arc<Nsm>,
+    nitro: Arc<dyn Driver + Send + Sync>,
 }
 
 #[tokio::main]
@@ -74,20 +74,19 @@ async fn main() {
         })
         .collect::<Vec<ByteBuf>>();
 
-    let nitro = NsmBuilder::new();
-
     // Hit the dev driver when the `dev` feature is enabled
     // You can enable this while working locally, ensuring it's disabled when this service is deployed.
     #[cfg(feature = "dev")]
-    let nitro = nitro
-        .dev_mode(signing_key, end_cert)
+    let nitro = nsm::dev::DevNitro::builder(signing_key, end_cert)
         // Using `Pcrs::zeros` to get attestation documents similar to how the Nsm module will return all zeros in "debug mode"
         // https://docs.aws.amazon.com/enclaves/latest/user/getting-started.html#run
         // `Pcrs` can be generated in another ways too, but some of them require extra feature flags not enabled in this binary.
         .pcrs(Pcrs::zeros())
-        .ca_bundle(int_certs);
+        .ca_bundle(int_certs)
+        .build();
 
-    let nitro = nitro.build();
+    #[cfg(not(feature = "dev"))]
+    let nitro = nsm::nitro::Nitro::init();
 
     let app_state = AppState {
         nitro: Arc::new(nitro),
