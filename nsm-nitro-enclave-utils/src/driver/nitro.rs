@@ -5,9 +5,10 @@ use aws_nitro_enclaves_nsm_api::api::{Request, Response};
 /// ```rust
 /// use nsm_nitro_enclave_utils::{driver::{Driver, nitro::Nitro}, api::nsm::Request};
 /// fn main() {
-///  let nsm = Nitro::init();
+///  use serde_bytes::ByteBuf;
+/// let nsm = Nitro::init();
 ///  let attestation_doc = nsm.process_request(Request::Attestation {
-///         user_data: Some(b"hello, world".into()),
+///         user_data: Some(ByteBuf::from(b"hello, world")),
 ///         public_key: None,
 ///         nonce: None,
 ///     });
