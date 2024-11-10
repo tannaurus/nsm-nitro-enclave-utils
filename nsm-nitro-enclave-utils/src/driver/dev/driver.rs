@@ -2,12 +2,13 @@ use crate::api::{
     nsm::{AttestationDoc, ErrorCode, Request, Response},
     ByteBuf, SecretKey,
 };
-use crate::nsm::dev::sign::AttestationDocSignerExt;
-use crate::nsm::Driver;
+use crate::driver::dev::sign::AttestationDocSignerExt;
+use crate::driver::Driver;
 use crate::pcr::Pcrs;
 use crate::time::Time;
 use p384::ecdsa::SigningKey;
 
+/// [`DevNitro`] mimics requests to the Nitro Secure Model, allowing you to build features for AWS Nitro Enclaves, without AWS Nitro Enclaves.
 pub struct DevNitro {
     ca_bundle: Vec<ByteBuf>,
     signing_key: SigningKey,
@@ -33,7 +34,6 @@ impl Driver for DevNitro {
 impl DevNitro {
     /// `signing_key`: used to sign the attestation document
     /// `end_cert` a der encoded x509 certificate. Should contain `signing_key`'s public key.
-    /// `get_timestamp` must return UTC time when document was created expressed as milliseconds since Unix Epoch
     pub fn builder(signing_key: SecretKey, end_cert: ByteBuf) -> DevNitroBuilder {
         DevNitroBuilder {
             signing_key: signing_key.into(),

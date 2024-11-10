@@ -2,7 +2,7 @@
 
 pub mod api;
 
-pub mod nsm;
+pub mod driver;
 
 pub mod time;
 
@@ -68,7 +68,7 @@ mod wasm_tests {
         };
 
         use crate::api;
-        use crate::nsm::dev::sign::AttestationDocSignerExt;
+        use crate::driver::dev::sign::AttestationDocSignerExt;
         use crate::pcr::Pcrs;
         use crate::time::Time;
         use crate::verify::AttestationDocVerifierExt;

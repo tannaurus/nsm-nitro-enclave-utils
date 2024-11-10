@@ -114,7 +114,7 @@ mod tests {
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
     use crate::api::nsm::{AttestationDoc, Digest};
-    use crate::nsm::dev::sign::AttestationDocSignerExt;
+    use crate::driver::dev::sign::AttestationDocSignerExt;
     use crate::pcr::Pcrs;
     use crate::time::Time;
     use crate::verify::AttestationDocVerifierExt;
