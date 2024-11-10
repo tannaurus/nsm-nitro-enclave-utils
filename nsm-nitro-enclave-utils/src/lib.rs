@@ -42,7 +42,7 @@ impl<T> Error<T> {
 /// Used by errors to provide additional context if the error returned from the underlying library does not implement [`std::error::Error`],
 /// or the error originated due to this library's own assertions.
 #[derive(Debug, PartialEq, Eq, Clone, Hash, PartialOrd, Ord)]
-pub(crate) struct ErrorContext(pub(crate) &'static str);
+pub struct ErrorContext(pub(crate) &'static str);
 
 impl std::fmt::Display for ErrorContext {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

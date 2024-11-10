@@ -1,7 +1,7 @@
 use crate::driver::Driver;
 use aws_nitro_enclaves_nsm_api::api::{Request, Response};
 
-/// [`Nitro`] makes authentic requests to the Nitro Secure Model, and only works inside an authentic Nitro Enclave.
+/// [`Nitro`] makes authentic requests to the Nitro Secure Module, and only works inside an authentic Nitro Enclave.
 /// ```rust
 /// use nsm_nitro_enclave_utils::{driver::{Driver, nitro::Nitro}, api::nsm::Request};
 /// fn main() {

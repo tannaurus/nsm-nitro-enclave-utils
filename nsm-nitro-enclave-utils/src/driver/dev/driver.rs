@@ -8,7 +8,7 @@ use crate::pcr::Pcrs;
 use crate::time::Time;
 use p384::ecdsa::SigningKey;
 
-/// [`DevNitro`] mimics requests to the Nitro Secure Model, allowing you to build features for AWS Nitro Enclaves, without AWS Nitro Enclaves.
+/// [`DevNitro`] mimics requests to the Nitro Secure Module, allowing you to build features for AWS Nitro Enclaves, without AWS Nitro Enclaves.
 pub struct DevNitro {
     ca_bundle: Vec<ByteBuf>,
     signing_key: SigningKey,

@@ -1,4 +1,4 @@
-//! Implements a verifier extension trait for [AWS Nitro Enclave attestation documents](https://aws.amazon.com/blogs/compute/validating-attestation-documents-produced-by-aws-nitro-enclaves/)
+//! Implements a verifier extension trait for [AWS Nitro Enclave attestation documents](https://aws.amazon.com/blogs/compute/validating-attestation-documents-produced-by-aws-nitro-enclaves/).
 //! [`AttestationDocVerifierExt`] is designed to be work with both authentic AWS-signed attestation documents and ones signed with your own PKI, with the goal of enabling a seamless transition between testing in a local development environment and remote enclave environments.
 //! A client that utilizes [`AttestationDocVerifierExt`] must be made aware of the root certificate it expects to verify against.
 //! When a client is expecting an authentic AWS-signed attestation document, [`AttestationDocVerifierExt`] should be provided AWS's root certificate, which can be downloaded [from their documentation](https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html#validation-process).

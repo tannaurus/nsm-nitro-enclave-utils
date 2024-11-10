@@ -28,7 +28,7 @@ impl Time {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    /// Creates a new [`Time`] using [`SystemTime`]. Not compatible with WebAssembly targets.
+    /// Creates a new [`Time`] using [`std::time::SystemTime`]. Not compatible with WebAssembly targets.
     pub fn system_time() -> Self {
         use std::time::{SystemTime, UNIX_EPOCH};
         Self(Box::new(move || {
