@@ -110,7 +110,7 @@ impl AttestationDocVerifierExt for AttestationDoc {
 
 #[cfg(all(test, not(target_arch = "wasm32"), feature = "pki"))]
 mod tests {
-    use nsm_nitro_enclave_utils_keygen::DerEncode;
+    use nsm_nitro_enclave_utils_keygen::DerEncodeExt;
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
     use crate::api::nsm::{AttestationDoc, Digest};
