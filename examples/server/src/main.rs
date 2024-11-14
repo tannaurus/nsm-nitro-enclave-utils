@@ -10,7 +10,7 @@ use nsm_nitro_enclave_utils::{
         nsm::{Request as NsmRequest, Response as NsmResponse},
         ByteBuf,
     },
-    nsm::{Nsm, NsmBuilder},
+    driver::Driver,
 };
 #[cfg(feature = "dev")]
 use nsm_nitro_enclave_utils::{
@@ -40,18 +40,16 @@ struct Args {
         allow_hyphen_values = true,
         default_value = "./test_data/int-certificate.der"
     )]
-    int_cert: Vec<std::path::PathBuf>,
+    int_certs: Vec<std::path::PathBuf>,
 }
 
 #[derive(Clone)]
 struct AppState {
-    nitro: Arc<Nsm>,
+    nitro: Arc<dyn Driver + Send + Sync>,
 }
 
 #[tokio::main]
 async fn main() {
-    let nitro = NsmBuilder::new();
-
     // Hit the dev driver when the `dev` feature is enabled
     // You can enable this while working locally, ensuring it's disabled when this service is deployed.
     #[cfg(feature = "dev")]
@@ -60,7 +58,7 @@ async fn main() {
         let args = Args::parse();
 
         let int_certs = args
-            .int_cert
+            .int_certs
             .into_iter()
             .map(|path| {
                 let der = std::fs::read(&path).unwrap();
@@ -78,16 +76,17 @@ async fn main() {
             SecretKey::from_pkcs8_der(&der).unwrap()
         };
 
-        nitro
-            .dev_mode(signing_key, end_cert)
+        nsm_nitro_enclave_utils::driver::dev::DevNitro::builder(signing_key, end_cert)
             // Using `Pcrs::zeros` to get attestation documents similar to how the Nsm module will return all zeros in "debug mode"
             // https://docs.aws.amazon.com/enclaves/latest/user/getting-started.html#run
             // `Pcrs` can be generated in another ways too, but some of them require extra feature flags not enabled in this binary.
             .pcrs(Pcrs::zeros())
             .ca_bundle(int_certs)
+            .build()
     };
 
-    let nitro = nitro.build();
+    #[cfg(not(feature = "dev"))]
+    let nitro = nsm_nitro_enclave_utils::driver::nitro::Nitro::init();
 
     let app_state = AppState {
         nitro: Arc::new(nitro),

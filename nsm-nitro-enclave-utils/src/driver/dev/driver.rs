@@ -1,17 +1,15 @@
-use crate::nsm::dev::sign::AttestationDocSignerExt;
-use crate::nsm::{Driver, NsmBuilder};
+use crate::api::{
+    nsm::{AttestationDoc, ErrorCode, Request, Response},
+    ByteBuf, SecretKey,
+};
+use crate::driver::dev::sign::AttestationDocSignerExt;
+use crate::driver::Driver;
 use crate::pcr::Pcrs;
 use crate::time::Time;
-use crate::{
-    api::{
-        nsm::{AttestationDoc, ErrorCode, Request, Response},
-        ByteBuf, SecretKey,
-    },
-    nsm::Nsm,
-};
 use p384::ecdsa::SigningKey;
 
-struct DevNitro {
+/// [`DevNitro`] mimics requests to the Nitro Secure Module, allowing you to build features for AWS Nitro Enclaves, without AWS Nitro Enclaves.
+pub struct DevNitro {
     ca_bundle: Vec<ByteBuf>,
     signing_key: SigningKey,
     end_cert: ByteBuf,
@@ -34,6 +32,18 @@ impl Driver for DevNitro {
 }
 
 impl DevNitro {
+    /// `signing_key`: used to sign the attestation document
+    /// `end_cert` a der encoded x509 certificate. Should contain `signing_key`'s public key.
+    pub fn builder(signing_key: SecretKey, end_cert: ByteBuf) -> DevNitroBuilder {
+        DevNitroBuilder {
+            signing_key: signing_key.into(),
+            end_cert,
+            ca_bundle: None,
+            pcrs: Pcrs::default(),
+            get_timestamp: Time::system_time(),
+        }
+    }
+
     fn describe_pcr(&self, index: u16) -> Response {
         let index = usize::from(index);
         match index.try_into() {
@@ -74,7 +84,7 @@ impl DevNitro {
     }
 }
 
-/// A builder for [`crate::nsm::dev::DevNitro`]
+/// A builder for [`DevNitro`]
 pub struct DevNitroBuilder {
     signing_key: SigningKey,
     end_cert: ByteBuf,
@@ -84,19 +94,6 @@ pub struct DevNitroBuilder {
 }
 
 impl DevNitroBuilder {
-    /// `signing_key`: used to sign the attestation document
-    /// `end_cert` a der encoded x509 certificate. Should contain `signing_key`'s public key.
-    /// `get_timestamp` must return UTC time when document was created expressed as milliseconds since Unix Epoch
-    pub(crate) fn new(signing_key: SecretKey, end_cert: ByteBuf, get_timestamp: Time) -> Self {
-        Self {
-            signing_key: signing_key.into(),
-            end_cert,
-            ca_bundle: None,
-            pcrs: Pcrs::default(),
-            get_timestamp,
-        }
-    }
-
     /// Set the attestation document's ca_bundle.
     /// `ca_bundle` should be a list of der encoded intermediate certificates.
     pub fn ca_bundle(self, ca_bundle: Vec<ByteBuf>) -> Self {
@@ -111,24 +108,14 @@ impl DevNitroBuilder {
         Self { pcrs, ..self }
     }
 
-    /// Create an [`Nsm`] where [`crate::nsm::dev::DevNitro`] processes the requests
-    pub fn build(self) -> Nsm {
-        Nsm {
-            driver: Box::new(DevNitro {
-                signing_key: self.signing_key,
-                end_cert: self.end_cert,
-                ca_bundle: self.ca_bundle.unwrap_or(Vec::new()),
-                pcrs: self.pcrs,
-                get_timestamp: self.get_timestamp,
-            }),
+    /// Builds a new [`DevNitro`] to processes the requests
+    pub fn build(self) -> DevNitro {
+        DevNitro {
+            signing_key: self.signing_key,
+            end_cert: self.end_cert,
+            ca_bundle: self.ca_bundle.unwrap_or_default(),
+            pcrs: self.pcrs,
+            get_timestamp: self.get_timestamp,
         }
-    }
-}
-
-impl NsmBuilder {
-    /// Creates a new [`crate::nsm::dev::DevNitroBuilder`], which supports "bring your own pki"
-    /// The provided `doc_signing_key` should correspond to the public key of the `end_cert`
-    pub fn dev_mode(self, doc_signing_key: SecretKey, end_cert: ByteBuf) -> DevNitroBuilder {
-        DevNitroBuilder::new(doc_signing_key, end_cert, Time::system_time())
     }
 }

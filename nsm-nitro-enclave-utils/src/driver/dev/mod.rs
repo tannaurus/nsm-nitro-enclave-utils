@@ -3,4 +3,7 @@
 pub(crate) mod sign;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub mod nsm;
+mod driver;
+
+#[cfg(not(target_arch = "wasm32"))]
+pub use driver::{DevNitro, DevNitroBuilder};
