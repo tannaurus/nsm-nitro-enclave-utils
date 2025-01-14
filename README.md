@@ -65,4 +65,4 @@ The `pki` feature flag won't cause the build to fail, but the functionality it p
 
 ### Test coverage
 
-There is a `wasm-pack` test harness in place to ensure features remain wasm compatible. This can be run with the following command: `wasm-pack test --node --no-default-features --features seed,rand,verify`.
+There is a `wasm-pack` test harness in place to ensure features remain wasm compatible. This can be run with the following command: `wasm-pack test --node --no-default-features --features seed,rand,verify,pki`.

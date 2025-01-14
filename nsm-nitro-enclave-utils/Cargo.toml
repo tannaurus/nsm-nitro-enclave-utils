@@ -12,9 +12,9 @@ categories = ["emulators", "development-tools", "wasm"]
 
 [features]
 default = ["nitro"]
-rand = ["dep:rand"]
+rand = ["dep:rand", "dep:ring"]
 seed = ["dep:sha2"]
-verify = ["dep:rustls-webpki", "x509-cert", "p384"]
+verify = ["dep:rustls-webpki", "x509-cert", "p384", "dep:ring"]
 nitro = ["aws-nitro-enclaves-nsm-api/nix"]
 pki = ["p384"]
 
@@ -33,7 +33,7 @@ x509-cert = { version = "0.2", features = ["builder"], optional = true }
 p384 = { version = "0.13", optional = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
-ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"] }
+ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"], optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
