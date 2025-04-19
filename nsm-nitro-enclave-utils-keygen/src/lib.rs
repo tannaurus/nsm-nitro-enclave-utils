@@ -104,8 +104,7 @@ fn build_cert(
 }
 
 fn generate_key() -> (SigningKey, VerifyingKey) {
-    let signing_key =
-        SigningKey::from(SecretKey::random(&mut rand::thread_rng()));
+    let signing_key = SigningKey::from(SecretKey::random(&mut rand::thread_rng()));
     let verifying_key = VerifyingKey::from(signing_key.clone());
     (signing_key, verifying_key)
 }

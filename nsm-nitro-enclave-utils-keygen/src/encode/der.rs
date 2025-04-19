@@ -57,12 +57,7 @@ impl Serialize for DerNsmCertChain {
     {
         let mut s = serializer.serialize_struct("NsmCertChain", 3)?;
 
-        let root_der = ByteBuf::from(
-            self.0
-                .root
-                .to_der()
-                .map_err(ser::Error::custom)?,
-        );
+        let root_der = ByteBuf::from(self.0.root.to_der().map_err(ser::Error::custom)?);
         s.serialize_field("rootCertificate", &root_der)?;
 
         let int_der = ByteBuf::from(self.0.int.to_der().map_err(ser::Error::custom)?);
@@ -129,8 +124,7 @@ impl<'de> Deserialize<'de> for DerNsmCertChain {
                             }
                             root_certificate =
                                 Some(map.next_value().map(|bytes: Vec<u8>| {
-                                    Certificate::from_der(&bytes)
-                                        .map_err(de::Error::custom)
+                                    Certificate::from_der(&bytes).map_err(de::Error::custom)
                                 })??);
                         }
                         Field::IntCertificate => {
@@ -154,8 +148,7 @@ impl<'de> Deserialize<'de> for DerNsmCertChain {
                                 return Err(de::Error::duplicate_field("endSigningKey"));
                             }
                             end_signing_key = Some(map.next_value().map(|bytes: Vec<u8>| {
-                                SigningKey::from_pkcs8_der(&bytes)
-                                    .map_err(de::Error::custom)
+                                SigningKey::from_pkcs8_der(&bytes).map_err(de::Error::custom)
                             })??);
                         }
                     }
