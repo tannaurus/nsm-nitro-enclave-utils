@@ -4,17 +4,15 @@ use aws_nitro_enclaves_nsm_api::api::{Request, Response};
 /// [`Nitro`] makes authentic requests to the Nitro Secure Module, and only works inside an authentic Nitro Enclave.
 /// ```rust
 /// use nsm_nitro_enclave_utils::{driver::{Driver, nitro::Nitro}, api::nsm::Request};
-/// fn main() {
-///  use serde_bytes::ByteBuf;
+/// use serde_bytes::ByteBuf;
 /// let nsm = Nitro::init();
-///  let attestation_doc = nsm.process_request(Request::Attestation {
+/// let attestation_doc = nsm.process_request(Request::Attestation {
 ///         user_data: Some(ByteBuf::from(b"hello, world")),
 ///         public_key: None,
 ///         nonce: None,
 ///     });
 ///
 ///  println!("{:?}", attestation_doc);
-/// }
 /// ```
 pub struct Nitro(i32);
 

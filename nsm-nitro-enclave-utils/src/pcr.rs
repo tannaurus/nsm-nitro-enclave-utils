@@ -142,10 +142,10 @@ impl From<BTreeMap<PcrIndex, Pcr>> for Pcrs {
 }
 
 /// [`aws_nitro_enclaves_nsm_api::api::AttestationDoc`] stores PCRs as a BTreeMap.
-impl Into<BTreeMap<usize, ByteBuf>> for Pcrs {
-    fn into(self) -> BTreeMap<usize, ByteBuf> {
+impl From<Pcrs> for BTreeMap<usize, ByteBuf> {
+    fn from(pcrs: Pcrs) -> Self {
         let mut map = BTreeMap::new();
-        for (index, value) in self.0.into_iter() {
+        for (index, value) in pcrs.0.into_iter() {
             map.insert(index.into(), ByteBuf::from(*value));
         }
 
@@ -251,10 +251,10 @@ mod tests {
         let pcrs = Pcrs::zeros();
         let map: BTreeMap<usize, ByteBuf> = pcrs.into();
         for index in PCR_INDEXES {
-            assert!(map.get(&index.into()).is_some());
+            assert!(map.contains_key(&index.into()));
         }
 
-        assert!(map.get(&(8 + 1)).is_none());
+        assert!(!map.contains_key(&(8 + 1)));
     }
 
     #[cfg(feature = "rand")]

@@ -93,7 +93,7 @@ impl AttestationDocVerifierExt for AttestationDoc {
             VerifyingKey::from_sec1_bytes(doc_cert_pub_key.subject_public_key.as_bytes().ok_or(
                 VerifyError::new(
                     ErrorKind::AttestationDoc,
-                    crate::ErrorContext("Attestation doc missing subject_public_key".into()),
+                    crate::ErrorContext("Attestation doc missing subject_public_key"),
                 ),
             )?)
             .map_err(|err| VerifyError::new(ErrorKind::AttestationDoc, err))?;

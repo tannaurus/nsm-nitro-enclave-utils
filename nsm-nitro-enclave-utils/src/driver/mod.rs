@@ -2,10 +2,10 @@
 //!
 //! ### Features
 //! * **nitro** -
-//! Enabled by default. Enables the [`nitro`] module, which contains the [`nitro::Nitro`] struct. It makes authentic requests to the Nitro Secure Module, and only works inside an authentic Nitro Enclave.
+//!     Enabled by default. Enables the [`nitro`] module, which contains the [`nitro::Nitro`] struct. It makes authentic requests to the Nitro Secure Module, and only works inside an authentic Nitro Enclave.
 //!
 //! * **pki** -
-//! When enabled, the [`dev`] module is included, which contains the [`dev::DevNitro`] struct. It is designed mimic responses from an authentic Nitro Secure Module, allowing you to build for Nitro Enclaves locally.
+//!     When enabled, the [`dev`] module is included, which contains the [`dev::DevNitro`] struct. It is designed mimic responses from an authentic Nitro Secure Module, allowing you to build for Nitro Enclaves locally.
 
 #[cfg(feature = "pki")]
 pub mod dev;

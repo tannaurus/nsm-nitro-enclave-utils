@@ -52,10 +52,10 @@ fn main() {
 
     let json = match args.format {
         Format::Pem => {
-            serde_json::to_value(&PemNsmCertChain(cert_chain)).expect("Failed to serialize")
+            serde_json::to_value(PemNsmCertChain(cert_chain)).expect("Failed to serialize")
         }
         Format::Der => {
-            serde_json::to_value(&DerNsmCertChain(cert_chain)).expect("Failed to serialize")
+            serde_json::to_value(DerNsmCertChain(cert_chain)).expect("Failed to serialize")
         }
     };
 

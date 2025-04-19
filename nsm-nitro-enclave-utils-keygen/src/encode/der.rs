@@ -61,11 +61,11 @@ impl Serialize for DerNsmCertChain {
             self.0
                 .root
                 .to_der()
-                .map_err(|err| ser::Error::custom(err))?,
+                .map_err(ser::Error::custom)?,
         );
         s.serialize_field("rootCertificate", &root_der)?;
 
-        let int_der = ByteBuf::from(self.0.int.to_der().map_err(|err| ser::Error::custom(err))?);
+        let int_der = ByteBuf::from(self.0.int.to_der().map_err(ser::Error::custom)?);
         s.serialize_field("intCertificate", &int_der)?;
 
         let end_cert_der = ByteBuf::from(
@@ -73,14 +73,14 @@ impl Serialize for DerNsmCertChain {
                 .end_signer
                 .cert
                 .to_der()
-                .map_err(|err| ser::Error::custom(err))?,
+                .map_err(ser::Error::custom)?,
         );
         let end_signing_key_der = ByteBuf::from(
             self.0
                 .end_signer
                 .signing_key
                 .to_pkcs8_der()
-                .map_err(|err| ser::Error::custom(err))?
+                .map_err(ser::Error::custom)?
                 .as_bytes(),
         );
 
@@ -130,7 +130,7 @@ impl<'de> Deserialize<'de> for DerNsmCertChain {
                             root_certificate =
                                 Some(map.next_value().map(|bytes: Vec<u8>| {
                                     Certificate::from_der(&bytes)
-                                        .map_err(|err| de::Error::custom(err))
+                                        .map_err(de::Error::custom)
                                 })??);
                         }
                         Field::IntCertificate => {
@@ -138,7 +138,7 @@ impl<'de> Deserialize<'de> for DerNsmCertChain {
                                 return Err(de::Error::duplicate_field("intCertificate"));
                             }
                             int_certificate = Some(map.next_value().map(|bytes: Vec<u8>| {
-                                Certificate::from_der(&bytes).map_err(|err| de::Error::custom(err))
+                                Certificate::from_der(&bytes).map_err(de::Error::custom)
                             })??);
                         }
                         Field::EndCertificate => {
@@ -146,7 +146,7 @@ impl<'de> Deserialize<'de> for DerNsmCertChain {
                                 return Err(de::Error::duplicate_field("endCertificate"));
                             }
                             end_certificate = Some(map.next_value().map(|bytes: Vec<u8>| {
-                                Certificate::from_der(&bytes).map_err(|err| de::Error::custom(err))
+                                Certificate::from_der(&bytes).map_err(de::Error::custom)
                             })??);
                         }
                         Field::EndSigningKey => {
@@ -155,7 +155,7 @@ impl<'de> Deserialize<'de> for DerNsmCertChain {
                             }
                             end_signing_key = Some(map.next_value().map(|bytes: Vec<u8>| {
                                 SigningKey::from_pkcs8_der(&bytes)
-                                    .map_err(|err| de::Error::custom(err))
+                                    .map_err(de::Error::custom)
                             })??);
                         }
                     }

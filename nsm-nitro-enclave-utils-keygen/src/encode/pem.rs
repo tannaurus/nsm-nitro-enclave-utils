@@ -60,14 +60,14 @@ impl Serialize for PemNsmCertChain {
             .0
             .root
             .to_pem(LineEnding::default())
-            .map_err(|err| ser::Error::custom(err))?;
+            .map_err(ser::Error::custom)?;
         s.serialize_field("rootCertificate", &root_pem)?;
 
         let int_pem = self
             .0
             .int
             .to_pem(LineEnding::default())
-            .map_err(|err| ser::Error::custom(err))?;
+            .map_err(ser::Error::custom)?;
         s.serialize_field("intCertificate", &int_pem)?;
 
         let end_cert_pem = self
@@ -75,13 +75,13 @@ impl Serialize for PemNsmCertChain {
             .end_signer
             .cert
             .to_pem(LineEnding::default())
-            .map_err(|err| ser::Error::custom(err))?;
+            .map_err(ser::Error::custom)?;
         let end_signing_key_pem = self
             .0
             .end_signer
             .signing_key
             .to_pkcs8_pem(LineEnding::default())
-            .map_err(|err| ser::Error::custom(err))?;
+            .map_err(ser::Error::custom)?;
 
         s.serialize_field("endCertificate", &end_cert_pem)?;
         s.serialize_field("endSigningKey", end_signing_key_pem.as_str())?;
@@ -127,7 +127,7 @@ impl<'de> Deserialize<'de> for PemNsmCertChain {
                                 return Err(de::Error::duplicate_field("rootCertificate"));
                             }
                             root_certificate = Some(map.next_value().map(|s: String| {
-                                Certificate::from_pem(&s).map_err(|err| de::Error::custom(err))
+                                Certificate::from_pem(&s).map_err(de::Error::custom)
                             })??);
                         }
                         Field::IntCertificate => {
@@ -135,7 +135,7 @@ impl<'de> Deserialize<'de> for PemNsmCertChain {
                                 return Err(de::Error::duplicate_field("intCertificate"));
                             }
                             int_certificate = Some(map.next_value().map(|s: String| {
-                                Certificate::from_pem(&s).map_err(|err| de::Error::custom(err))
+                                Certificate::from_pem(&s).map_err(de::Error::custom)
                             })??);
                         }
                         Field::EndCertificate => {
@@ -143,7 +143,7 @@ impl<'de> Deserialize<'de> for PemNsmCertChain {
                                 return Err(de::Error::duplicate_field("endCertificate"));
                             }
                             end_certificate = Some(map.next_value().map(|s: String| {
-                                Certificate::from_pem(&s).map_err(|err| de::Error::custom(err))
+                                Certificate::from_pem(&s).map_err(de::Error::custom)
                             })??);
                         }
                         Field::EndSigningKey => {
@@ -151,7 +151,7 @@ impl<'de> Deserialize<'de> for PemNsmCertChain {
                                 return Err(de::Error::duplicate_field("endSigningKey"));
                             }
                             end_signing_key = Some(map.next_value().map(|s: String| {
-                                SigningKey::from_pkcs8_pem(&s).map_err(|err| de::Error::custom(err))
+                                SigningKey::from_pkcs8_pem(&s).map_err(de::Error::custom)
                             })??);
                         }
                     }

@@ -29,7 +29,7 @@ async fn main() {
     let args = Args::parse();
     let root_cert = std::fs::read(&args.root_cert).unwrap();
 
-    let nonce = hex::encode(ByteBuf::from(&[0u8; 32]).as_ref());
+    let nonce = hex::encode(ByteBuf::from([0u8; 32]).as_ref());
 
     let response = reqwest::get(format!("http://127.0.0.1:3000/attest/{}", nonce))
         .await
