@@ -1,3 +1,9 @@
+  <p>
+    <a href="https://github.com/tannaurus/nsm-nitro-enclave-utils/blob/main/.github/workflows/rust.yml"><img alt="Build Status" src="https://github.com/tannaurus/nsm-nitro-enclave-utils/actions/workflows/rust.yml/badge.svg?branch=main"/></a>
+    <a href="https://crates.io/crates/nsm-nitro-enclave-utils"><img alt="crates.io" src="https://img.shields.io/crates/v/nsm-nitro-enclave-utils"/></a>
+    <a href="https://opensource.org/licenses/MPL-2.0"><img alt="License MPL 2.0" src="https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg"/></a>
+  </p>
+
 # Overview
 `nsm-nitro-enclave-utils` is designed to make the lives of teams building with AWS Nitro Enclaves a bit easier.
 It's primary purpose is to support "bring your own PKI" as an option for attestation documents in development environments, allowing you to swap out the root of trust in clients that are verifying the attestation document's certificate chain.
