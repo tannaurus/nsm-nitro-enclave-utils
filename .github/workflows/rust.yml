@@ -11,6 +11,7 @@ env:
 
 jobs:
   build:
+    name: Test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -44,9 +45,11 @@ jobs:
             cargo clippy --workspace -- -D warnings
 
   wasm:
-      name: Wasm tests
+      name: Wasm
       runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@4
-        - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-        - run: ../../scripts/ci/test_wasm.sh 
+        - uses: actions/checkout@v4
+        - name: Install tools
+          run: cargo install wasm-bindgen-cli && curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
+        - name: Tests
+          run: scripts/ci/test_wasm.sh 
