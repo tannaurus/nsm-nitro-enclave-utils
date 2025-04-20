@@ -68,7 +68,3 @@ Found in the `/examples` directory.
 
 `nsm-nitro-enclave-utils` provides WebAssembly support by disabling the `nitro`. When `nitro` is disabled, you can still verify any attestation documents (including authentic and self-signed!), but you cannot generate documents due to a lack of wasm support in `aws-nitro-enclaves-nsm-api`.
 The `pki` feature flag won't cause the build to fail, but the functionality it provides is not Wasm compatible. The `pki` feature flag retains wasm compilation support to generate test data for the wasm test suite.
-
-### Test coverage
-
-There is a `wasm-pack` test harness in place to ensure features remain wasm compatible. This can be run with the following command: `wasm-pack test --node --no-default-features --features seed,rand,verify,pki`.
