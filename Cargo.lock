@@ -1116,7 +1116,7 @@ dependencies = [
 
 [[package]]
 name = "nsm-nitro-enclave-utils"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "aws-nitro-enclaves-nsm-api",
  "coset",
