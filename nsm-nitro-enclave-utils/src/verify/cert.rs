@@ -1,10 +1,7 @@
 use crate::time::Time;
+use rustls_pki_types::{CertificateDer, TrustAnchor, UnixTime};
 use std::time::Duration;
-use webpki::{
-    anchor_from_trusted_cert,
-    types::{CertificateDer, TrustAnchor, UnixTime},
-    EndEntityCert, KeyUsage,
-};
+use webpki::{anchor_from_trusted_cert, EndEntityCert, KeyUsage};
 
 use super::{ErrorKind, VerifyError};
 

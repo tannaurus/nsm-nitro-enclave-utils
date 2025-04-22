@@ -6,8 +6,8 @@
 
 use coset::{CborSerializable, CoseSign1};
 use p384::ecdsa::{signature::Verifier, Signature, VerifyingKey};
+use rustls_pki_types::CertificateDer;
 use sealed::sealed;
-use webpki::types::CertificateDer;
 use x509_cert::{der::Decode, Certificate};
 
 mod cert;
