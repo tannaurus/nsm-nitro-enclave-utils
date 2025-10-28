@@ -1,7 +1,7 @@
 //! Provides DER encoding utilities for [`NsmCertChain`]
 
 use p384::ecdsa::SigningKey;
-use p384::pkcs8::{DecodePrivateKey, EncodePrivateKey};
+use sec1::{DecodeEcPrivateKey, EncodeEcPrivateKey};
 use serde::{
     de,
     ser::{self, SerializeStruct},
@@ -74,7 +74,7 @@ impl Serialize for DerNsmCertChain {
             self.0
                 .end_signer
                 .signing_key
-                .to_pkcs8_der()
+                .to_sec1_der()
                 .map_err(ser::Error::custom)?
                 .as_bytes(),
         );
@@ -148,7 +148,7 @@ impl<'de> Deserialize<'de> for DerNsmCertChain {
                                 return Err(de::Error::duplicate_field("endSigningKey"));
                             }
                             end_signing_key = Some(map.next_value().map(|bytes: Vec<u8>| {
-                                SigningKey::from_pkcs8_der(&bytes).map_err(de::Error::custom)
+                                SigningKey::from_sec1_der(&bytes).map_err(de::Error::custom)
                             })??);
                         }
                     }

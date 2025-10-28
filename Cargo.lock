@@ -1143,6 +1143,7 @@ dependencies = [
  "clap",
  "p384",
  "rand",
+ "sec1",
  "serde",
  "serde_bytes",
  "serde_json",

@@ -32,6 +32,7 @@ rustls-webpki = { version = "0.103", features = ["ring"], optional = true }
 rustls-pki-types = { version = "1.11.0" }
 x509-cert = { version = "0.2", features = ["builder"], optional = true }
 p384 = { version = "0.13", optional = true }
+nsm-nitro-enclave-utils-keygen = { version = "0.1", path = "../nsm-nitro-enclave-utils-keygen" }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"], optional = true }
