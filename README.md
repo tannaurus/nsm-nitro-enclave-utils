@@ -13,8 +13,6 @@ Replacing the root of trust inherently destroys the security guarantees of AWS N
 
 The api of `nsm-nitro-enclave-utils` is intentionally designed to mimic `aws-nitro-enclaves-nsm-api` in an effort to make adopting it a painless process.
 
-⚠️ This crate is functional but its API is changing rapidly until further notice.
-
 ## Features
 
 | Name                   |                                                                                              Description                                                                                              | Wasm Support | Cargo feature |
