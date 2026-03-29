@@ -50,6 +50,6 @@ jobs:
       steps:
         - uses: actions/checkout@v4
         - name: Install tools
-          run: cargo install wasm-bindgen-cli && curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
+          run: cargo install wasm-bindgen-cli --version 0.2.100 --locked && curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
         - name: Tests
           run: scripts/ci/test_wasm.sh 
