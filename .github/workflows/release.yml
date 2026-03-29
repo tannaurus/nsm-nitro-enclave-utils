@@ -3,15 +3,17 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'nsm-nitro-enclave-utils-v*'
+      - 'nsm-nitro-enclave-utils-keygen-v*'
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  publish:
-    name: Publish to crates.io
+  nsm-nitro-enclave-utils-keygen:
+    name: Publish nsm-nitro-enclave-utils-keygen
     runs-on: ubuntu-latest
+    if: startsWith(github.ref_name, 'nsm-nitro-enclave-utils-keygen-v') || startsWith(github.ref_name, 'nsm-nitro-enclave-utils-v')
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -20,6 +22,16 @@ jobs:
         run: cargo publish -p nsm-nitro-enclave-utils-keygen
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  nsm-nitro-enclave-utils:
+    name: Publish nsm-nitro-enclave-utils
+    runs-on: ubuntu-latest
+    needs: nsm-nitro-enclave-utils-keygen
+    if: startsWith(github.ref_name, 'nsm-nitro-enclave-utils-v')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Wait for crates.io to index nsm-nitro-enclave-utils-keygen
         run: sleep 30
       - name: Publish nsm-nitro-enclave-utils
