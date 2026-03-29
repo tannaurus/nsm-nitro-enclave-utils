@@ -59,7 +59,7 @@ Usage: nsm-keygen check --dir <DIR> [OPTIONS]
 Options:
       --dir <DIR>                   Directory containing the certificates to check.
   -f, --format <FORMAT>             Format of the certificates [default: pem]
-      --expires-after <YYYY-MM-DD>  Fail if any certificate expires before this date.
+      --valid-at <YYYY-MM-DD>  Fail if any certificate is not valid at this date.
 ```
 
 **Inspect expiry:**
@@ -77,16 +77,16 @@ root-certificate:
 
 **Use in CI to warn before expiry:**
 
-Exits with code 1 if any certificate expires before the given date, making it suitable for a scheduled CI job:
+Exits with code 1 if any certificate is not valid at the given date, making it suitable for a scheduled CI job:
 
 ```bash
 # Fail if any cert expires within the next 30 days
-nsm-keygen check --dir ./certs --expires-after $(date -d '+30 days' +%Y-%m-%d)
+nsm-keygen check --dir ./certs --valid-at $(date -d '+30 days' +%Y-%m-%d)
 ```
 
 Example GitHub Actions step:
 
 ```yaml
 - name: Check dev cert chain expiry
-  run: nsm-keygen check --dir ./certs --expires-after $(date -d '+30 days' +%Y-%m-%d)
+  run: nsm-keygen check --dir ./certs --valid-at $(date -d '+30 days' +%Y-%m-%d)
 ```

@@ -53,9 +53,9 @@ enum Commands {
         #[arg(
             long,
             value_name = "YYYY-MM-DD",
-            help = "Fail if any certificate expires before this date. Useful in CI to warn ahead of expiry (e.g. --expires-after $(date -d '+30 days' +%Y-%m-%d))."
+            help = "Fail if any certificate is not valid at this date. Useful in CI to warn ahead of expiry (e.g. --valid-at $(date -d '+30 days' +%Y-%m-%d))."
         )]
-        expires_after: Option<String>,
+        valid_at: Option<String>,
     },
 }
 
@@ -117,9 +117,9 @@ fn main() {
         Commands::Check {
             dir,
             format,
-            expires_after,
+            valid_at,
         } => {
-            let check_at = expires_after.map(|s| parse_date(&s));
+            let check_at = valid_at.map(|s| parse_date(&s));
 
             let ext = format.as_file_extension();
             let certs = [

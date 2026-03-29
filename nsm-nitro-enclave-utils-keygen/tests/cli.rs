@@ -98,7 +98,7 @@ fn generate_respects_days_flag() {
             "check",
             "--dir",
             dir.path().to_str().unwrap(),
-            "--expires-after",
+            "--valid-at",
             &date_from_now(1),
         ])
         .assert()
@@ -109,7 +109,7 @@ fn generate_respects_days_flag() {
             "check",
             "--dir",
             dir.path().to_str().unwrap(),
-            "--expires-after",
+            "--valid-at",
             &date_from_now(730),
         ])
         .assert()
@@ -133,7 +133,7 @@ fn check_passes_with_valid_certs() {
 }
 
 #[test]
-fn check_expires_after_near_future_passes() {
+fn check_valid_at_near_future_passes() {
     let dir = TempDir::new().unwrap();
     nsm_keygen()
         .args([
@@ -151,7 +151,7 @@ fn check_expires_after_near_future_passes() {
             "check",
             "--dir",
             dir.path().to_str().unwrap(),
-            "--expires-after",
+            "--valid-at",
             &date_from_now(30),
         ])
         .assert()
@@ -159,7 +159,7 @@ fn check_expires_after_near_future_passes() {
 }
 
 #[test]
-fn check_expires_after_beyond_expiry_fails() {
+fn check_valid_at_beyond_expiry_fails() {
     let dir = TempDir::new().unwrap();
     nsm_keygen()
         .args([
@@ -177,7 +177,7 @@ fn check_expires_after_beyond_expiry_fails() {
             "check",
             "--dir",
             dir.path().to_str().unwrap(),
-            "--expires-after",
+            "--valid-at",
             &date_from_now(60),
         ])
         .assert()
@@ -197,7 +197,7 @@ fn check_fails_with_invalid_date() {
             "check",
             "--dir",
             dir.path().to_str().unwrap(),
-            "--expires-after",
+            "--valid-at",
             "not-a-date",
         ])
         .assert()

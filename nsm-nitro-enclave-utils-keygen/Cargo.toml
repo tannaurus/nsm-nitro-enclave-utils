@@ -1,6 +1,6 @@
 [package]
 name = "nsm-nitro-enclave-utils-keygen"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 description = "A key generation utility for nsm-nitro-enclave-utils, used to generate self-signed certificate chains for local development with AWS Nitro Enclaves."
 license = "MPL-2.0"
