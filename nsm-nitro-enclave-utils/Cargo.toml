@@ -3,7 +3,7 @@ name = "nsm-nitro-enclave-utils"
 description = "nsm-nitro-enclave-utils simplifies development for AWS Nitro Enclaves by enabling the reading and verifying of mocked attestation documents while in local development environments. Once your ready to go to production, it can do the same with authentic, AWS-signed, attestation documents. With WebAssembly support and a familiar API, it offers seamless integration across development and production environments."
 repository = "https://github.com/tannaurus/nsm-nitro-enclave-utils/"
 readme = "../README.md"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 license = "MPL-2.0"
 authors = ["Tanner Gill <contacttannergill@gmail.com>"]
@@ -32,7 +32,7 @@ rustls-webpki = { version = "0.103", features = ["ring"], optional = true }
 rustls-pki-types = { version = "1.14.0" }
 x509-cert = { version = "0.2", features = ["builder"], optional = true }
 p384 = { version = "0.13", optional = true }
-nsm-nitro-enclave-utils-keygen = { version = "0.1", path = "../nsm-nitro-enclave-utils-keygen" }
+nsm-nitro-enclave-utils-keygen = { version = "0.1.3", path = "../nsm-nitro-enclave-utils-keygen" }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 ring = { version = "0.17", features = ["wasm32_unknown_unknown_js"], optional = true }
