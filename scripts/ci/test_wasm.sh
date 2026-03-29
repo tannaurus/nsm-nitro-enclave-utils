@@ -1,6 +1,10 @@
 #!/bin/bash
 
-set -e 
+set -e
+
+if [[ "$(uname)" == "Darwin" ]]; then
+  export CC_wasm32_unknown_unknown="$(brew --prefix llvm)/bin/clang"
+fi
 
 echo "Running wasm tests..."
 
