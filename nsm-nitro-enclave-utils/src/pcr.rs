@@ -164,10 +164,10 @@ impl Pcrs {
     #[cfg(feature = "rand")]
     /// All PCRs will be randomly generated to mimic SHA386 hashes
     pub fn rand() -> Self {
-        use rand::{distributions::Alphanumeric, Rng};
+        use rand::{distr::Alphanumeric, Rng};
         Pcrs::from_fn(|_| {
-            let bytes = rand::thread_rng()
-                .sample_iter(&Alphanumeric)
+            let bytes = rand::rng()
+                .sample_iter(Alphanumeric)
                 .take(PCR_LENGTH)
                 .collect::<Vec<u8>>();
             Pcr::try_from(bytes).expect("rand must produce valid Pcr")
