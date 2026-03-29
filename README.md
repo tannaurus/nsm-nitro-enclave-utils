@@ -42,7 +42,12 @@ If you're already using `aws-nitro-enclaves-nsm-api`, you'll need to swap out `a
 When verifying an attestation document coming from a Nitro Enclave, you'll need to use AWS's root certificate; which can be downloaded from their documentation: https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html#validation-process
 
 #### Creating your own
-This crate comes with a script to make generating your own pki easier. You can use `scripts/cert_chain.sh` to get a root, intermediate, and leaf certificate.
+Install the `nsm-keygen` binary to generate your own root, intermediate, and leaf certificates:
+
+```bash
+cargo install nsm-nitro-enclave-utils-keygen
+nsm-keygen --help
+```
 
 ## Why "bring your own PKI"?
 AWS Nitro Enclaves cryptographic attestation is a powerful tool that is accompanied by a less-than-desirable hurdle: ["You can request an enclave's attestation document from inside the enclave only"](https://docs.aws.amazon.com/enclaves/latest/user/set-up-attestation.html). This limitation introduces two big problems for development teams:

@@ -6,6 +6,10 @@ edition = "2021"
 [lib]
 path = "src/lib.rs"
 
+[[bin]]
+name = "nsm-keygen"
+path = "src/main.rs"
+
 [dependencies]
 x509-cert = { version = "0.2", features = ["builder"] }
 p384 = { version = "0.13", features = ["alloc", "pkcs8", "pem"]}

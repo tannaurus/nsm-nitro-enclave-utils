@@ -1083,7 +1083,7 @@ dependencies = [
 
 [[package]]
 name = "nsm-nitro-enclave-utils"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "aws-nitro-enclaves-nsm-api",
  "coset",
@@ -1106,7 +1106,7 @@ dependencies = [
 
 [[package]]
 name = "nsm-nitro-enclave-utils-keygen"
-version = "0.1.0"
+version = "0.1.3"
 dependencies = [
  "clap",
  "p384",
